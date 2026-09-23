@@ -5,14 +5,15 @@ import { connectToMongo } from "./db/mongo.js";
 
 dotenv.config();
 
-const mongodbUri = process.env.MONGODB_URI;
 const port = Number(process.env.PORT) || 4000;
 
-if (!mongodbUri) {
-  throw new Error("MONGODB_URI is not defined");
-}
-
 async function demarrerServeur(): Promise<void> {
+  const mongodbUri = process.env.MONGODB_URI;
+
+  if (!mongodbUri) {
+    throw new Error("MONGODB_URI is not defined");
+  }
+
   try {
     // Connexion à MongoDB avant de démarrer le serveur.
     await connectToMongo(mongodbUri);
@@ -32,6 +33,7 @@ async function demarrerServeur(): Promise<void> {
       });
     });
 
+    // listen est pour démarrer le serveur et écouter les requêtes entrantes sur le port spécifié.
     app.listen(port, () => {
       console.log(`Serveur Express démarré sur http://localhost:${port}`);
     });
