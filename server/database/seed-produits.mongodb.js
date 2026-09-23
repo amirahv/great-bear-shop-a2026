@@ -1,3 +1,11 @@
+/** 
+* Ce script initialise la base de données MongoDB avec des produits de démonstration pour le projet Great Bear Shop.
+* Il crée la collection "produits" si elle n'existe pas déjà, ajoute des index pour améliorer les performances des requêtes,
+* et insère trois produits de démonstration (un livre, un vêtement et un sirop d'érable) seulement s'ils n'existent pas déjà.
+* 
+* auteur: Amir
+*/
+
 // Sélectionne la base de données du projet.
 use("great-bear-shop");
 

@@ -8,7 +8,7 @@ const produitRouter = Router();
  *
  * Retourne la liste de tous les produits actifs.
  *
- * authors: Amir
+ * auteur: Amir
  */
 produitRouter.get("/", obtenirProduits);
 
