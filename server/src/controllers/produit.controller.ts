@@ -36,6 +36,8 @@ export async function obtenirProduits(
  *
  * @param req - Requête Express contenant l'identifiant dans req.params.id.
  * @param res - Réponse Express envoyée au client.
+ *
+ * auteur: Amir
  */
 export async function obtenirProduitParId(
   req: Request,
@@ -44,7 +46,7 @@ export async function obtenirProduitParId(
   try {
     const id = req.params.id;
 
-    if (!id || !ObjectId.isValid(id)) {
+    if (typeof id !== "string" || !ObjectId.isValid(id)) {
       res.status(400).json({
         message: "L'identifiant du produit est invalide.",
       });
