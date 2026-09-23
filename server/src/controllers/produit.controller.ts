@@ -2,6 +2,12 @@ import type { Request, Response } from "express";
 import { getDb } from "../db/mongo.js";
 import type { Produit } from "../models/produit.model.js";
 
+/**
+ * Récupère tous les produits actifs dans MongoDB.
+ *
+ * @param _req - Requête Express. Elle n'est pas utilisée par ce contrôleur.
+ * @param res - Réponse Express envoyée au client.
+ */
 export async function obtenirProduits(
   _req: Request,
   res: Response,

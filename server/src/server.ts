@@ -2,11 +2,16 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import { connectToMongo } from "./db/mongo.js";
+import produitRouter from "./routes/produit.routes.js";
 
 dotenv.config();
 
 const port = Number(process.env.PORT) || 4000;
 
+/**
+ * Connecte l'application à MongoDB, configure Express
+ * et démarre le serveur HTTP.
+ */
 async function demarrerServeur(): Promise<void> {
   const mongodbUri = process.env.MONGODB_URI;
 
@@ -25,6 +30,9 @@ async function demarrerServeur(): Promise<void> {
 
     // Permet à Express de recevoir des données JSON.
     app.use(express.json());
+
+    // Toutes les routes définies dans produitRouter commenceront par /api/produits.
+    app.use("/api/produits", produitRouter);
 
     // Route temporaire pour vérifier le fonctionnement du serveur.
     app.get("/", (_req, res) => {
