@@ -12,30 +12,30 @@ const livres = [
 
   {
     id: 2,
-    titre: ,
-    auteur:  ,
-    isbn: ,
-    maison_edition: ,
-    annee_publication: ,
-    nombre_pages: ,
-    image:
+    titre: "5150, rue des ormes",
+    auteur: "Patrick Senécal" ,
+    isbn: 9782922145519,
+    maison_edition: "Alire",
+    annee_publication: 2001,
+    nombre_pages: 370,
+    image: "/images/livres/5150_rue_des_ormes.jpg"
   },
 
     {
     id: 3,
-    titre: ,
-    auteur:  ,
-    isbn: ,
-    maison_edition: ,
-    annee_publication: ,
-    nombre_pages: ,
-    image:
+    titre: "Amos Daragon et le porteur de masques",
+    auteur: "Bryan Perro" ,
+    isbn: 9782898083549,
+    maison_edition: "ADA",
+    annee_publication: 2020,
+    nombre_pages:182,
+    image: "/images/livres/Amos_Daragon_Le_porteur_de_Masques.jpg"
   },
 
     {
     id:4 ,
-    titre: ,
-    auteur:  ,
+    titre: "Les chevaliers d'emeraude tome 1 le feu dans le ciel",
+    auteur: "Anne Robillard" ,
     isbn: ,
     maison_edition: ,
     annee_publication: ,
@@ -45,7 +45,7 @@ const livres = [
 
     {
     id: 5,
-    titre: ,
+    titre: "Paris en vrac",
     auteur:  ,
     isbn: ,
     maison_edition: ,
@@ -56,7 +56,7 @@ const livres = [
 
     {
     id: 6,
-    titre: ,
+    titre: "Aliss",
     auteur:  ,
     isbn: ,
     maison_edition: ,
@@ -67,7 +67,7 @@ const livres = [
 
     {
     id: 7,
-    titre: ,
+    titre: "La Grande Quête de Jacob Jobin tome 1 l'élu",
     auteur:  ,
     isbn: ,
     maison_edition: ,
@@ -78,7 +78,7 @@ const livres = [
 
     {
     id:8 ,
-    titre: ,
+    titre: "Le rituel",
     auteur:  ,
     isbn: ,
     maison_edition: ,
@@ -89,7 +89,7 @@ const livres = [
 
     {
     id:9 ,
-    titre: ,
+    titre: "La forêt",
     auteur:  ,
     isbn: ,
     maison_edition: ,
@@ -100,7 +100,7 @@ const livres = [
 
     {
     id:10 ,
-    titre: ,
+    titre: "Arielle Queen intégrale tome 1",
     auteur:  ,
     isbn: ,
     maison_edition: ,
