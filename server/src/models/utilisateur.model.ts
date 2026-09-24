@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
-import { UtilisateurRole } from "../types/utilisateur-role.types.js";
-import { Adresse } from "../types/adresse.types.js";
+import { UtilisateurRole } from "../types/utilisateur-role.type.js";
+import { Adresse } from "../types/adresse.type.js";
 
 export interface Utilisateur {
   _id?: ObjectId;

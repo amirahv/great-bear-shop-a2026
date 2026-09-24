@@ -1,4 +1,4 @@
-import { AdresseType } from "./adresse-type.types.js";
+import { AdresseType } from "./adresse-type.type.js";
 
 export interface Adresse {
   type?: AdresseType;
