@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  modifierProduit,
   ajouterProduit,
   obtenirProduitParId,
   obtenirProduits,
@@ -11,8 +12,6 @@ const produitRouter = Router();
  * GET /api/produits
  *
  * Retourne la liste de tous les produits actifs.
- *
- * @auteur Amir
  */
 produitRouter.get("/", obtenirProduits);
 
@@ -20,8 +19,6 @@ produitRouter.get("/", obtenirProduits);
  * GET /api/produits/:id
  *
  * Retourne un produit actif à partir de son identifiant MongoDB.
- *
- * @auteur Amir
  */
 produitRouter.get("/:id", obtenirProduitParId);
 
@@ -29,9 +26,14 @@ produitRouter.get("/:id", obtenirProduitParId);
  * POST /api/produits
  *
  * Crée un nouveau produit.
- *
- * @auteur Amir
  */
 produitRouter.post("/", ajouterProduit);
+
+/**
+ * PUT /api/produits/:id
+ *
+ * Modifie complètement un produit existant.
+ */
+produitRouter.put("/:id", modifierProduit);
 
 export default produitRouter;
