@@ -36,77 +36,77 @@ const livres = [
     id:4 ,
     titre: "Les chevaliers d'emeraude tome 1 le feu dans le ciel",
     auteur: "Anne Robillard" ,
-    isbn: ,
-    maison_edition: ,
-    annee_publication: ,
-    nombre_pages: ,
-    image:
+    isbn: 9782981042873,
+    maison_edition: "MORTAGNE ED DE",
+    annee_publication: 2010,
+    nombre_pages: 224,
+    image: "/images/livres/Les_Chevaliers_d'emeraude_tome_1.jpg"
   },
 
     {
     id: 5,
     titre: "Paris en vrac",
-    auteur:  ,
-    isbn: ,
-    maison_edition: ,
-    annee_publication: ,
-    nombre_pages: ,
-    image:
+    auteur: "Michel Tremblay",
+    isbn:9782760913523 ,
+    maison_edition:"LEMEAC" ,
+    annee_publication: 2025 ,
+    nombre_pages:136 ,
+    image:"/images/livres/Paris_en_vrac.jpg"
   },
 
     {
     id: 6,
     titre: "Aliss",
-    auteur:  ,
-    isbn: ,
-    maison_edition: ,
-    annee_publication: ,
-    nombre_pages: ,
-    image:
+    auteur: "Patrick Senécal", 
+    isbn:9782922145441,
+    maison_edition: "ALIRE",
+    annee_publication:2000 ,
+    nombre_pages: 554,
+    image:"/images/livres/Aliss.jpg"
   },
 
     {
     id: 7,
     titre: "La Grande Quête de Jacob Jobin tome 1 l'élu",
-    auteur:  ,
-    isbn: ,
-    maison_edition: ,
-    annee_publication: ,
-    nombre_pages: ,
-    image:
+    auteur:  "Dominique Demers",
+    isbn: 9782764429020,
+    maison_edition: "QUEBEC AMERIQUE",
+    annee_publication: 2014,
+    nombre_pages: 310,
+    image:"/images/livres/Jacob_Jobin_tome_1.jpg"
   },
 
     {
     id:8 ,
     titre: "Le rituel",
-    auteur:  ,
-    isbn: ,
-    maison_edition: ,
-    annee_publication: ,
-    nombre_pages: ,
-    image:
+    auteur:  "Dominic Pilon",
+    isbn:9781234567890 ,
+    maison_edition: "Atypical Films",
+    annee_publication: 2026,
+    nombre_pages: 178,
+    image:"/images/livres/Le_Rituel.jpg"
   },
 
     {
     id:9 ,
     titre: "La forêt",
-    auteur:  ,
-    isbn: ,
-    maison_edition: ,
-    annee_publication: ,
-    nombre_pages: ,
-    image:
+    auteur:  "A.J. Lachance",
+    isbn: 9781234567891,
+    maison_edition: "Atypical Films",
+    annee_publication: 2025,
+    nombre_pages: 18,
+    image:"/images/livres/La_Foret.jpg"
   },
 
     {
     id:10 ,
     titre: "Arielle Queen intégrale tome 1",
-    auteur:  ,
-    isbn: ,
-    maison_edition: ,
-    annee_publication: ,
-    nombre_pages: ,
-    image:
+    auteur: "michel j lévesque" ,
+    isbn: 9782897658113,
+    maison_edition: "SCARAB",
+    annee_publication: 2022,
+    nombre_pages: 400,
+    image:"/images/livres/Arielle_Queen_tome_1.jpg"
   },
   
 ];
