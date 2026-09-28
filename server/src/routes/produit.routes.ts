@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  reactiverProduit,
   supprimerProduit,
   modifierProduit,
   ajouterProduit,
@@ -43,5 +44,12 @@ produitRouter.put("/:id", modifierProduit);
  * Désactive un produit sans le supprimer définitivement de MongoDB (suppression logique).
  */
 produitRouter.delete("/:id", supprimerProduit);
+
+/**
+ * PATCH /api/produits/:id/reactiver
+ *
+ * Réactive un produit précédemment désactivé.
+ */
+produitRouter.patch("/:id/reactiver", reactiverProduit);
 
 export default produitRouter;

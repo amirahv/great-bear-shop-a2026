@@ -406,6 +406,7 @@ export async function reactiverProduit(
     }
 
     if (produit.actif) {
+      // Si le produit est déjà actif, on ne fait rien et on retourne un message d'information.
       res.status(409).json({
         message: "Le produit est déjà actif.",
       });
