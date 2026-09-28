@@ -9,7 +9,7 @@ import { ObjectId } from "mongodb";
  * @param valeur - Valeur à vérifier.
  * @returns true si la valeur est une catégorie valide.
  *
- * auteur: Amir
+ * @auteur Amir
  */
 function estCategorieProduit(valeur: unknown): valeur is CategorieProduit {
   const categoriesValides: CategorieProduit[] = [
@@ -30,7 +30,7 @@ function estCategorieProduit(valeur: unknown): valeur is CategorieProduit {
  * @param _req - Requête Express. Elle n'est pas utilisée par ce contrôleur.
  * @param res - Réponse Express envoyée au client.
  *
- * auteur: Amir
+ * @auteur Amir
  */
 export async function obtenirProduits(
   _req: Request,
@@ -58,7 +58,7 @@ export async function obtenirProduits(
  * @param req - Requête Express contenant l'identifiant dans req.params.id.
  * @param res - Réponse Express envoyée au client.
  *
- * auteur: Amir
+ * @auteur Amir
  */
 export async function obtenirProduitParId(
   req: Request,
@@ -107,7 +107,7 @@ export async function obtenirProduitParId(
  * @param req - Requête Express contenant le nouveau produit dans req.body.
  * @param res - Réponse Express envoyée au client.
  *
- * auteur: Amir
+ * @auteur Amir
  */
 export async function ajouterProduit(
   req: Request,
@@ -143,6 +143,7 @@ export async function ajouterProduit(
       nom.trim() === "" ||
       (description !== undefined && typeof description !== "string") ||
       typeof prix !== "number" ||
+      !Number.isFinite(prix) ||
       prix < 0 ||
       typeof stock !== "number" ||
       !Number.isInteger(stock) ||
@@ -161,6 +162,7 @@ export async function ajouterProduit(
 
     const maintenant = new Date();
 
+    // Utiliser toutes les propriétés de Produit, sauf _id.
     const nouveauProduit: Omit<Produit, "_id"> = {
       nom: nom.trim(),
       description:
@@ -181,6 +183,7 @@ export async function ajouterProduit(
 
     res.status(201).json({
       _id: resultat.insertedId,
+      // ... copie toutes les propriétés de nouveauProduit dans la réponse.
       ...nouveauProduit,
     });
   } catch (error) {

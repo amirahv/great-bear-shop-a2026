@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  ajouterProduit,
   obtenirProduitParId,
   obtenirProduits,
 } from "../controllers/produit.controller.js";
@@ -11,7 +12,7 @@ const produitRouter = Router();
  *
  * Retourne la liste de tous les produits actifs.
  *
- * auteur: Amir
+ * @auteur Amir
  */
 produitRouter.get("/", obtenirProduits);
 
@@ -20,8 +21,17 @@ produitRouter.get("/", obtenirProduits);
  *
  * Retourne un produit actif à partir de son identifiant MongoDB.
  *
- * auteur: Amir
+ * @auteur Amir
  */
 produitRouter.get("/:id", obtenirProduitParId);
+
+/**
+ * POST /api/produits
+ *
+ * Crée un nouveau produit.
+ *
+ * @auteur Amir
+ */
+produitRouter.post("/", ajouterProduit);
 
 export default produitRouter;
