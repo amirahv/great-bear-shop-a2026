@@ -307,3 +307,62 @@ export async function modifierProduit(
     });
   }
 }
+
+/**
+ * Désactive un produit à partir de son identifiant.
+ *
+ * Le document demeure dans MongoDB, mais son champ actif passe à false.
+ * Le produit ne sera donc plus retourné par les routes publiques.
+ *
+ * @param req - Requête contenant l'identifiant du produit.
+ * @param res - Réponse Express envoyée au client.
+ * @author Amir
+ */
+export async function supprimerProduit(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const id = req.params.id;
+
+    if (typeof id !== "string" || !ObjectId.isValid(id)) {
+      res.status(400).json({
+        message: "L'identifiant du produit est invalide.",
+      });
+      return;
+    }
+
+    const resultat = await getDb()
+      .collection<Produit>("produits")
+      .updateOne(
+        {
+          _id: new ObjectId(id),
+          actif: true,
+        },
+        {
+          $set: {
+            actif: false,
+            dateModification: new Date(),
+          },
+        },
+      );
+
+    // matchedCount indique combien de documents ont été trouvés et mis à jour. Si c'est 0, le produit n'existe pas ou est déjà désactivé.
+    if (resultat.matchedCount === 0) {
+      res.status(404).json({
+        message: "Produit introuvable.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Le produit a été désactivé avec succès.",
+    });
+  } catch (error) {
+    console.error("Erreur lors de la suppression du produit :", error);
+
+    res.status(500).json({
+      message: "Impossible de supprimer le produit.",
+    });
+  }
+}
