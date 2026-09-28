@@ -1,7 +1,35 @@
 import type { Request, Response } from "express";
 import { getDb } from "../db/mongo.js";
-import type { Produit } from "../models/produit.model.js";
+import type { CategorieProduit, Produit } from "../models/produit.model.js";
+import { ObjectId } from "mongodb";
 
+/**
+ * Vérifie si une valeur correspond à une catégorie de produit acceptée.
+ *
+ * @param valeur - Valeur à vérifier.
+ * @returns true si la valeur est une catégorie valide.
+ * @auteur Amir
+ */
+function estCategorieProduit(valeur: unknown): valeur is CategorieProduit {
+  const categoriesValides: CategorieProduit[] = [
+    "livre",
+    "vetement",
+    "sirop-erable",
+  ];
+
+  return (
+    typeof valeur === "string" &&
+    categoriesValides.some((categorie) => categorie === valeur)
+  );
+}
+
+/**
+ * Récupère tous les produits actifs dans MongoDB.
+ *
+ * @param _req - Requête Express. Elle n'est pas utilisée par ce contrôleur.
+ * @param res - Réponse Express envoyée au client.
+ * @auteur Amir
+ */
 export async function obtenirProduits(
   _req: Request,
   res: Response,
@@ -18,6 +46,393 @@ export async function obtenirProduits(
 
     res.status(500).json({
       message: "Impossible de récupérer les produits.",
+    });
+  }
+}
+
+/**
+ * Récupère un produit actif à partir de son identifiant MongoDB.
+ *
+ * @param req - Requête Express contenant l'identifiant dans req.params.id.
+ * @param res - Réponse Express envoyée au client.
+ * @auteur Amir
+ */
+export async function obtenirProduitParId(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const id = req.params.id;
+
+    if (typeof id !== "string" || !ObjectId.isValid(id)) {
+      res.status(400).json({
+        message: "L'identifiant du produit est invalide.",
+      });
+      return;
+    }
+
+    const produit = await getDb()
+      .collection<Produit>("produits")
+      .findOne({
+        _id: new ObjectId(id),
+        actif: true,
+      });
+
+    if (!produit) {
+      res.status(404).json({
+        message: "Produit introuvable.",
+      });
+      return;
+    }
+
+    res.status(200).json(produit);
+  } catch (error) {
+    console.error("Erreur lors de la récupération du produit :", error);
+
+    res.status(500).json({
+      message: "Impossible de récupérer le produit.",
+    });
+  }
+}
+
+/**
+ * Crée un nouveau produit dans MongoDB.
+ *
+ * Les champs techniques actif, dateCreation et dateModification
+ * sont ajoutés automatiquement par le serveur.
+ *
+ * @param req - Requête Express contenant le nouveau produit dans req.body.
+ * @param res - Réponse Express envoyée au client.
+ * @auteur Amir
+ */
+export async function ajouterProduit(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      res.status(400).json({
+        message: "Le corps de la requête doit être un objet JSON.",
+      });
+      return;
+    }
+
+    const {
+      nom,
+      description,
+      categorie,
+      prix,
+      stock,
+      images,
+      caracteristiques,
+    } = req.body as Record<string, unknown>;
+
+    if (!estCategorieProduit(categorie)) {
+      res.status(400).json({
+        message: "La catégorie du produit est invalide.",
+      });
+      return;
+    }
+
+    if (
+      typeof nom !== "string" ||
+      nom.trim() === "" ||
+      (description !== undefined && typeof description !== "string") ||
+      typeof prix !== "number" ||
+      !Number.isFinite(prix) ||
+      prix < 0 ||
+      typeof stock !== "number" ||
+      !Number.isInteger(stock) ||
+      stock < 0 ||
+      !Array.isArray(images) ||
+      !images.every((image) => typeof image === "string") ||
+      !caracteristiques ||
+      typeof caracteristiques !== "object" ||
+      Array.isArray(caracteristiques)
+    ) {
+      res.status(400).json({
+        message: "Les données du produit sont invalides.",
+      });
+      return;
+    }
+
+    const maintenant = new Date();
+
+    // Utiliser toutes les propriétés de Produit, sauf _id.
+    const nouveauProduit: Omit<Produit, "_id"> = {
+      nom: nom.trim(),
+      description:
+        typeof description === "string" ? description.trim() : undefined,
+      categorie,
+      prix,
+      stock,
+      images: images as string[],
+      caracteristiques: caracteristiques as Produit["caracteristiques"],
+      actif: true,
+      dateCreation: maintenant,
+      dateModification: maintenant,
+    };
+
+    const resultat = await getDb()
+      .collection<Produit>("produits")
+      .insertOne(nouveauProduit);
+
+    res.status(201).json({
+      _id: resultat.insertedId,
+      // ... copie toutes les propriétés de nouveauProduit dans la réponse.
+      ...nouveauProduit,
+    });
+  } catch (error) {
+    console.error("Erreur lors de la création du produit :", error);
+
+    res.status(500).json({
+      message: "Impossible de créer le produit.",
+    });
+  }
+}
+
+/**
+ * Modifie complètement un produit actif à partir de son identifiant.
+ *
+ * La date de création est conservée et la date de modification
+ * est mise à jour automatiquement.
+ *
+ * @param req - Requête contenant l'identifiant et les nouvelles données.
+ * @param res - Réponse Express envoyée au client.
+ * @author Amir
+ */
+export async function modifierProduit(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const id = req.params.id;
+
+    if (typeof id !== "string" || !ObjectId.isValid(id)) {
+      res.status(400).json({
+        message: "L'identifiant du produit est invalide.",
+      });
+      return;
+    }
+
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      res.status(400).json({
+        message: "Le corps de la requête doit être un objet JSON.",
+      });
+      return;
+    }
+
+    const {
+      nom,
+      description,
+      categorie,
+      prix,
+      stock,
+      images,
+      caracteristiques,
+    } = req.body as Record<string, unknown>;
+
+    if (!estCategorieProduit(categorie)) {
+      res.status(400).json({
+        message: "La catégorie du produit est invalide.",
+      });
+      return;
+    }
+
+    if (
+      typeof nom !== "string" ||
+      nom.trim() === "" ||
+      (description !== undefined && typeof description !== "string") ||
+      typeof prix !== "number" ||
+      !Number.isFinite(prix) ||
+      prix < 0 ||
+      typeof stock !== "number" ||
+      !Number.isInteger(stock) ||
+      stock < 0 ||
+      !Array.isArray(images) ||
+      !images.every((image) => typeof image === "string") ||
+      !caracteristiques ||
+      typeof caracteristiques !== "object" ||
+      Array.isArray(caracteristiques)
+    ) {
+      res.status(400).json({
+        message: "Les données du produit sont invalides.",
+      });
+      return;
+    }
+
+    const produitId = new ObjectId(id);
+    const collectionProduits = getDb().collection<Produit>("produits");
+
+    const resultat = await collectionProduits.updateOne(
+      {
+        _id: produitId,
+        actif: true,
+      },
+      {
+        $set: {
+          nom: nom.trim(),
+          categorie,
+          prix,
+          stock,
+          images: images as string[],
+          caracteristiques: caracteristiques as Produit["caracteristiques"],
+          dateModification: new Date(),
+          ...(typeof description === "string"
+            ? { description: description.trim() }
+            : {}),
+        },
+        // Si description est undefined, on supprime le champ description du document.
+        ...(description === undefined ? { $unset: { description: "" } } : {}),
+      },
+    );
+
+    if (resultat.matchedCount === 0) {
+      res.status(404).json({
+        message: "Produit introuvable.",
+      });
+      return;
+    }
+
+    const produitModifie = await collectionProduits.findOne({
+      _id: produitId,
+    });
+
+    res.status(200).json(produitModifie);
+  } catch (error) {
+    console.error("Erreur lors de la modification du produit :", error);
+
+    res.status(500).json({
+      message: "Impossible de modifier le produit.",
+    });
+  }
+}
+
+/**
+ * Désactive un produit à partir de son identifiant.
+ *
+ * Le document demeure dans MongoDB, mais son champ actif passe à false.
+ * Le produit ne sera donc plus retourné par les routes publiques.
+ *
+ * @param req - Requête contenant l'identifiant du produit.
+ * @param res - Réponse Express envoyée au client.
+ * @author Amir
+ */
+export async function supprimerProduit(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const id = req.params.id;
+
+    if (typeof id !== "string" || !ObjectId.isValid(id)) {
+      res.status(400).json({
+        message: "L'identifiant du produit est invalide.",
+      });
+      return;
+    }
+
+    const resultat = await getDb()
+      .collection<Produit>("produits")
+      .updateOne(
+        {
+          _id: new ObjectId(id),
+          actif: true,
+        },
+        {
+          $set: {
+            actif: false,
+            dateModification: new Date(),
+          },
+        },
+      );
+
+    // matchedCount indique combien de documents ont été trouvés et mis à jour. Si c'est 0, le produit n'existe pas ou est déjà désactivé.
+    if (resultat.matchedCount === 0) {
+      res.status(404).json({
+        message: "Produit introuvable.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Le produit a été désactivé avec succès.",
+    });
+  } catch (error) {
+    console.error("Erreur lors de la suppression du produit :", error);
+
+    res.status(500).json({
+      message: "Impossible de supprimer le produit.",
+    });
+  }
+}
+
+/**
+ * Réactive un produit précédemment désactivé.
+ *
+ * Le champ actif passe à true et la date de modification
+ * est mise à jour automatiquement.
+ *
+ * @param req - Requête contenant l'identifiant du produit.
+ * @param res - Réponse Express envoyée au client.
+ * @author Amir
+ */
+export async function reactiverProduit(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const id = req.params.id;
+
+    if (typeof id !== "string" || !ObjectId.isValid(id)) {
+      res.status(400).json({
+        message: "L'identifiant du produit est invalide.",
+      });
+      return;
+    }
+
+    const produitId = new ObjectId(id);
+    const collectionProduits = getDb().collection<Produit>("produits");
+
+    const produit = await collectionProduits.findOne({
+      _id: produitId,
+    });
+
+    if (!produit) {
+      res.status(404).json({
+        message: "Produit introuvable.",
+      });
+      return;
+    }
+
+    if (produit.actif) {
+      // Si le produit est déjà actif, on ne fait rien et on retourne un message d'information.
+      res.status(409).json({
+        message: "Le produit est déjà actif.",
+      });
+      return;
+    }
+
+    await collectionProduits.updateOne(
+      {
+        _id: produitId,
+      },
+      {
+        $set: {
+          actif: true,
+          dateModification: new Date(),
+        },
+      },
+    );
+
+    res.status(200).json({
+      message: "Le produit a été réactivé avec succès.",
+    });
+  } catch (error) {
+    console.error("Erreur lors de la réactivation du produit :", error);
+
+    res.status(500).json({
+      message: "Impossible de réactiver le produit.",
     });
   }
 }
