@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  supprimerProduit,
   modifierProduit,
   ajouterProduit,
   obtenirProduitParId,
@@ -35,5 +36,12 @@ produitRouter.post("/", ajouterProduit);
  * Modifie complètement un produit existant.
  */
 produitRouter.put("/:id", modifierProduit);
+
+/**
+ * DELETE /api/produits/:id
+ *
+ * Désactive un produit sans le supprimer définitivement de MongoDB.
+ */
+produitRouter.delete("/:id", supprimerProduit);
 
 export default produitRouter;
