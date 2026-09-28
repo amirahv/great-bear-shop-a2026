@@ -7,6 +7,7 @@ const livres = [
     maison_edition: "Michel Quintin",
     annee_publication: 2024,
     nombre_pages:224 ,
+    prix: 19.95,
     image: "/images/livres/Rodeur_Mortel.jpg"
   },
 
@@ -18,6 +19,7 @@ const livres = [
     maison_edition: "Alire",
     annee_publication: 2001,
     nombre_pages: 370,
+    prix: 14.95,
     image: "/images/livres/5150_rue_des_ormes.jpg"
   },
 
@@ -29,6 +31,7 @@ const livres = [
     maison_edition: "ADA",
     annee_publication: 2020,
     nombre_pages:182,
+    prix: 18.95,
     image: "/images/livres/Amos_Daragon_Le_porteur_de_Masques.jpg"
   },
 
@@ -40,6 +43,7 @@ const livres = [
     maison_edition: "MORTAGNE ED DE",
     annee_publication: 2010,
     nombre_pages: 224,
+    prix: 14.95,
     image: "/images/livres/Les_Chevaliers_d'emeraude_tome_1.jpg"
   },
 
@@ -51,6 +55,7 @@ const livres = [
     maison_edition:"LEMEAC" ,
     annee_publication: 2025 ,
     nombre_pages:136 ,
+    prix: 19.95,
     image:"/images/livres/Paris_en_vrac.jpg"
   },
 
@@ -62,6 +67,7 @@ const livres = [
     maison_edition: "ALIRE",
     annee_publication:2000 ,
     nombre_pages: 554,
+    prix: 16.95,
     image:"/images/livres/Aliss.jpg"
   },
 
@@ -73,6 +79,7 @@ const livres = [
     maison_edition: "QUEBEC AMERIQUE",
     annee_publication: 2014,
     nombre_pages: 310,
+    prix: 8.99,
     image:"/images/livres/Jacob_Jobin_tome_1.jpg"
   },
 
@@ -84,6 +91,7 @@ const livres = [
     maison_edition: "Atypical Films",
     annee_publication: 2026,
     nombre_pages: 178,
+    prix: 19.99,
     image:"/images/livres/Le_Rituel.jpg"
   },
 
@@ -95,6 +103,7 @@ const livres = [
     maison_edition: "Atypical Films",
     annee_publication: 2025,
     nombre_pages: 18,
+    prix: 14.99,
     image:"/images/livres/La_Foret.jpg"
   },
 
@@ -106,6 +115,7 @@ const livres = [
     maison_edition: "SCARAB",
     annee_publication: 2022,
     nombre_pages: 400,
+    prix: 29.95,
     image:"/images/livres/Arielle_Queen_tome_1.jpg"
   },
   
