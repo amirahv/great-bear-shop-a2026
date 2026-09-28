@@ -366,3 +366,72 @@ export async function supprimerProduit(
     });
   }
 }
+
+/**
+ * Réactive un produit précédemment désactivé.
+ *
+ * Le champ actif passe à true et la date de modification
+ * est mise à jour automatiquement.
+ *
+ * @param req - Requête contenant l'identifiant du produit.
+ * @param res - Réponse Express envoyée au client.
+ * @author Amir
+ */
+export async function reactiverProduit(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const id = req.params.id;
+
+    if (typeof id !== "string" || !ObjectId.isValid(id)) {
+      res.status(400).json({
+        message: "L'identifiant du produit est invalide.",
+      });
+      return;
+    }
+
+    const produitId = new ObjectId(id);
+    const collectionProduits = getDb().collection<Produit>("produits");
+
+    const produit = await collectionProduits.findOne({
+      _id: produitId,
+    });
+
+    if (!produit) {
+      res.status(404).json({
+        message: "Produit introuvable.",
+      });
+      return;
+    }
+
+    if (produit.actif) {
+      res.status(409).json({
+        message: "Le produit est déjà actif.",
+      });
+      return;
+    }
+
+    await collectionProduits.updateOne(
+      {
+        _id: produitId,
+      },
+      {
+        $set: {
+          actif: true,
+          dateModification: new Date(),
+        },
+      },
+    );
+
+    res.status(200).json({
+      message: "Le produit a été réactivé avec succès.",
+    });
+  } catch (error) {
+    console.error("Erreur lors de la réactivation du produit :", error);
+
+    res.status(500).json({
+      message: "Impossible de réactiver le produit.",
+    });
+  }
+}
