@@ -40,7 +40,7 @@ produitRouter.put("/:id", modifierProduit);
 /**
  * DELETE /api/produits/:id
  *
- * Désactive un produit sans le supprimer définitivement de MongoDB.
+ * Désactive un produit sans le supprimer définitivement de MongoDB (suppression logique).
  */
 produitRouter.delete("/:id", supprimerProduit);
 
