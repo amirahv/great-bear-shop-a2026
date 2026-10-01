@@ -1,3 +1,14 @@
+export interface Livre {
+  id: number;
+  titre: string;
+  auteur: string;
+  isbn: number;
+  maison_edition: string;
+  annee_publication: number;
+  nombre_pages: number;
+  prix: number;
+  image: string;
+}
 const livres = [
   {
     id: 1,
