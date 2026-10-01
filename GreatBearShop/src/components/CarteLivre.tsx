@@ -16,6 +16,8 @@ type ProductCardProps = {
 function CarteLivre({ livre }: ProductCardProps) {
   return (
     <div className="card h-100">
+
+      {/* IMAGE DU LIVRE */}
       <div
         style={{
           height: '250px',
@@ -25,7 +27,15 @@ function CarteLivre({ livre }: ProductCardProps) {
           justifyContent: 'center',
         }}
       >
-        <span>Image du produit</span>
+        <img
+          src={livre.image}
+          alt={livre.titre}
+          style={{
+            maxHeight: '100%',
+            maxWidth: '100%',
+            objectFit: 'contain',
+          }}
+        />
       </div>
 
       <div className="card-body">
@@ -41,23 +51,23 @@ function CarteLivre({ livre }: ProductCardProps) {
           {livre.maison_edition}
         </p>
 
-         <p className="card-text text-muted">
+        <p className="card-text text-muted">
           {livre.annee_publication}
         </p>
 
-         <p className="card-text text-muted">
+        <p className="card-text text-muted">
           {livre.nombre_pages} pages
         </p>
 
         <p className="fw-bold">
           {livre.prix.toFixed(2)} $
         </p>
-        
 
         <button className="btn btn-dark w-100">
           Ajouter au panier
         </button>
       </div>
+
     </div>
   )
 }

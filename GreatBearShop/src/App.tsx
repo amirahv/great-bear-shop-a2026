@@ -1,41 +1,23 @@
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router'
+
 import Clothing from './pages/Clothing'
-import Livres from './pages/PageLivre'
+import PageLivres from './pages/PageLivres'
 
 function App() {
-  const [page, setPage] = useState('clothing')
-
   return (
-    <>
-      {/* Navigation temporaire */}
-      <nav className="navbar navbar-expand-lg bg-dark navbar-dark">
-        <div className="container">
-          <span className="navbar-brand fw-bold">
-            The Great Bear Shop
-          </span>
+    <BrowserRouter>
 
-          <div className="d-flex gap-2">
-            <button
-              className="btn btn-outline-light"
-              onClick={() => setPage('clothing')}
-            >
-              Vêtements
-            </button>
+      <Routes>
 
-            <button
-              className="btn btn-outline-light"
-              onClick={() => setPage('livres')}
-            >
-              Livres
-            </button>
-          </div>
-        </div>
-      </nav>
+    
 
-      {/* Affichage de la page sélectionnée */}
-      {page === 'clothing' && <Clothing />}
-      {page === 'livres' && <Livres />}
-    </>
+        <Route path="/clothing" element={<Clothing />} />
+
+        <Route path="/PageLivres" element={<PageLivres />} />
+
+      </Routes>
+
+    </BrowserRouter>
   )
 }
 

@@ -132,4 +132,4 @@ const livres = [
   
 ];
 
-export default livres;
+export default livres

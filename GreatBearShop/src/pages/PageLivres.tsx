@@ -1,10 +1,10 @@
 import livres from '../data/livres'
 import CarteLivre from '../components/CarteLivre'
 
-function PageLivre() {
+function PageLivres() {
   return (
     <div className="container py-5">
-      <h1 className="text-center mb-4">Livres</h1>
+      <h1 className="text-center mb-4 text-dark">Livres</h1>
 
       <div className="row g-4">
         {livres.map((livre) => (
@@ -17,4 +17,4 @@ function PageLivre() {
   )
 }
 
-export default PageLivre
+export default PageLivres
