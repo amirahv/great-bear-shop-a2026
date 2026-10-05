@@ -1,7 +1,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import { connectToMongo } from "./db/mongo.js";
+import { connectToMongo, getDb } from "./db/mongo.js";
 import produitRouter from "./routes/produit.routes.js";
 
 dotenv.config();
@@ -22,6 +22,11 @@ async function demarrerServeur(): Promise<void> {
   try {
     // Connexion à MongoDB avant de démarrer le serveur.
     await connectToMongo(mongodbUri);
+
+    // Empêche la création de plusieurs paniers pour le même utilisateur.
+    await getDb()
+      .collection("paniers")
+      .createIndex({ utilisateurId: 1 }, { unique: true });
 
     const app = express();
 

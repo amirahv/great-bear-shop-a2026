@@ -74,6 +74,7 @@ db.produits.updateOne(
       dateModification: new Date(),
     },
   },
+  // L'option upsert permet d'insérer le document seulement s'il n'existe pas déjà.
   { upsert: true },
 );
 
