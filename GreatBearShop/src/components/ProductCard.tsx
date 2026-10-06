@@ -14,39 +14,50 @@ type ProductCardProps = {
 
 function ProductCard({ product }: ProductCardProps) {
   return (
-    <div className="card h-100">
+    <div className="card h-100 shadow-sm border-0">
+      
+      {/* Image du produit */}
       <div
         style={{
-          height: '250px',
-          backgroundColor: '#f3f3f3',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          height: '300px',
+          backgroundColor: '#f5f5f5',
+          overflow: 'hidden',
         }}
       >
-        <span>Image du produit</span>
+        <img
+          src={product.image}
+          alt={product.name}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+          }}
+        />
       </div>
 
-      <div className="card-body">
-        <p className="text-muted mb-1">
+      {/* Informations du produit */}
+      <div className="card-body d-flex flex-column">
+        
+        <p className="text-muted mb-1 small">
           {product.brand}
         </p>
 
-        <h5 className="card-title">
+        <h5 className="card-title mb-2">
           {product.name}
         </h5>
 
-        <p className="card-text text-muted">
+        <p className="card-text text-muted mb-2">
           {product.category}
         </p>
 
-        <p className="fw-bold">
+        <p className="fw-bold fs-5 mb-3">
           {product.price.toFixed(2)} $
         </p>
 
-        <button className="btn btn-dark w-100">
+        <button className="btn btn-dark w-100 mt-auto">
           Ajouter au panier
         </button>
+
       </div>
     </div>
   )
