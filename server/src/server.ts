@@ -26,6 +26,7 @@ async function demarrerServeur(): Promise<void> {
     // Empêche la création de plusieurs paniers pour le même utilisateur.
     await getDb()
       .collection("paniers")
+      // Crée un index unique sur le champ 'utilisateurId' pour empêcher la création de plusieurs paniers pour le même utilisateur.
       .createIndex({ utilisateurId: 1 }, { unique: true });
 
     const app = express();
