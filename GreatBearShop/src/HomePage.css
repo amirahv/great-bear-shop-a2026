@@ -1,280 +1,335 @@
 .home-page {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* =========================
-     HERO
-  ========================= */
-  
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* =========================
+   HERO - GRANDE IMAGE ACCUEIL
+========================= */
+
+.hero-section {
+  min-height: 620px;
+
+  background:
+    linear-gradient(
+      rgba(0, 0, 0, 0.35),
+      rgba(0, 0, 0, 0.55)
+    ),
+    url("./assets/home-hero.jpg");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  display: flex;
+  align-items: center;
+}
+
+.hero-overlay {
+  width: 100%;
+}
+
+.hero-content {
+  max-width: 1200px;
+  width: 100%;
+  margin: auto;
+  padding: 80px 40px;
+  color: white;
+}
+
+.hero-small-title {
+  font-size: 14px;
+  letter-spacing: 3px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.hero-content h1 {
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1.05;
+  margin-bottom: 25px;
+}
+
+.hero-description {
+  max-width: 550px;
+  font-size: 18px;
+  line-height: 1.7;
+  margin-bottom: 35px;
+}
+
+.hero-button {
+  display: inline-block;
+  background-color: white;
+  color: #111;
+  padding: 14px 28px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.hero-button:hover {
+  background-color: #111;
+  color: white;
+}
+
+
+/* =========================
+   CATÉGORIES
+========================= */
+
+.categories-section {
+  max-width: 1250px;
+  margin: auto;
+  padding: 90px 30px;
+}
+
+.section-heading {
+  text-align: center;
+  max-width: 650px;
+  margin: 0 auto 50px;
+}
+
+.section-label {
+  letter-spacing: 3px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.section-heading h2 {
+  font-size: 42px;
+  margin: 10px 0;
+}
+
+.section-heading p {
+  color: #666;
+  line-height: 1.7;
+}
+
+
+/* =========================
+   GRILLE DES CATÉGORIES
+========================= */
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+}
+
+.category-card {
+  text-decoration: none;
+  color: white;
+}
+
+.category-image {
+  height: 400px;
+  position: relative;
+  overflow: hidden;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  transition: transform 0.3s ease;
+}
+
+.category-card:hover .category-image {
+  transform: translateY(-5px);
+}
+
+
+/* =========================
+   TEXTE SUR LES CATÉGORIES
+========================= */
+
+.category-overlay {
+  position: absolute;
+  inset: 0;
+
+  padding: 35px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  background:
+    linear-gradient(
+      transparent,
+      rgba(0, 0, 0, 0.75)
+    );
+}
+
+.category-overlay span {
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.category-overlay h3 {
+  font-size: 32px;
+  margin: 5px 0;
+}
+
+.category-overlay p {
+  margin: 0;
+}
+
+
+/* =========================
+   IMAGES DES CATÉGORIES
+========================= */
+
+/* Vêtements */
+.clothing-category {
+  background-image:
+    url("./assets/clothing/women/aritzia-top.png");
+}
+
+/* Sirop d'érable */
+.maple-category {
+  background-image:
+    url("./assets/maple/escuminac-amber.png");
+}
+
+/* Livres - temporaire */
+.books-category {
+  background-image:
+    url("./assets/hero.png");
+}
+
+/* Jeux vidéo - temporaire */
+.games-category {
+  background-image:
+    url("./assets/hero.png");
+}
+
+
+/* =========================
+   SECTION PRODUITS CANADIENS
+========================= */
+
+.canadian-section {
+  background-color: #f3f1ec;
+
+  padding:
+    90px
+    max(30px, calc((100% - 1150px) / 2));
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 60px;
+}
+
+.canadian-content {
+  max-width: 600px;
+}
+
+.canadian-content h2 {
+  font-size: 46px;
+  margin: 10px 0 20px;
+}
+
+.canadian-content > p:not(.section-label) {
+  color: #555;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+
+/* =========================
+   BOUTON EXPLORER
+========================= */
+
+.secondary-button {
+  display: inline-block;
+
+  margin-top: 15px;
+  padding: 13px 25px;
+
+  background-color: #111;
+  color: white;
+
+  text-decoration: none;
+
+  transition: 0.3s;
+}
+
+.secondary-button:hover {
+  background-color: #333;
+  color: white;
+}
+
+
+/* =========================
+   FEUILLE D'ÉRABLE
+========================= */
+
+.canadian-symbol {
+  text-align: center;
+  min-width: 250px;
+}
+
+.canadian-symbol span {
+  font-size: 100px;
+}
+
+.canadian-symbol p {
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+
+/* =========================
+   RESPONSIVE - TÉLÉPHONE
+========================= */
+
+@media (max-width: 768px) {
+
   .hero-section {
-    min-height: 620px;
-  
-    background:
-      linear-gradient(
-        rgba(0, 0, 0, 0.35),
-        rgba(0, 0, 0, 0.55)
-      ),
-      url("./assets/hero.png");
-  
-    background-size: cover;
-    background-position: center;
-  
-    display: flex;
-    align-items: center;
+    min-height: 520px;
   }
-  
-  .hero-overlay {
-    width: 100%;
-  }
-  
+
   .hero-content {
-    max-width: 1200px;
-    margin: auto;
-    padding: 80px 40px;
-    color: white;
+    padding: 60px 25px;
   }
-  
-  .hero-small-title {
-    font-size: 14px;
-    letter-spacing: 3px;
-    font-weight: 600;
-    margin-bottom: 15px;
-  }
-  
+
   .hero-content h1 {
-    font-size: 64px;
-    font-weight: 700;
-    line-height: 1.05;
-    margin-bottom: 25px;
-  }
-  
-  .hero-description {
-    max-width: 550px;
-    font-size: 18px;
-    line-height: 1.7;
-    margin-bottom: 35px;
-  }
-  
-  .hero-button {
-    display: inline-block;
-    background-color: white;
-    color: #111;
-    padding: 14px 28px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: 0.3s;
-  }
-  
-  .hero-button:hover {
-    background-color: #111;
-    color: white;
-  }
-  
-  
-  /* =========================
-     CATÉGORIES
-  ========================= */
-  
-  .categories-section {
-    max-width: 1250px;
-    margin: auto;
-    padding: 90px 30px;
-  }
-  
-  .section-heading {
-    text-align: center;
-    max-width: 650px;
-    margin: 0 auto 50px;
-  }
-  
-  .section-label {
-    letter-spacing: 3px;
-    font-size: 13px;
-    font-weight: 700;
-  }
-  
-  .section-heading h2 {
     font-size: 42px;
-    margin: 10px 0;
   }
-  
-  .section-heading p {
-    color: #666;
-    line-height: 1.7;
+
+  .hero-description {
+    font-size: 16px;
   }
-  
+
+  .categories-section {
+    padding: 60px 20px;
+  }
+
+  .section-heading h2 {
+    font-size: 34px;
+  }
+
   .categories-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 25px;
+    grid-template-columns: 1fr;
   }
-  
-  .category-card {
-    text-decoration: none;
-    color: white;
-  }
-  
+
   .category-image {
-    height: 400px;
-    position: relative;
-    overflow: hidden;
-  
-    background-size: cover;
-    background-position: center;
-  
-    transition: transform 0.3s ease;
+    height: 330px;
   }
-  
-  .category-card:hover .category-image {
-    transform: translateY(-5px);
-  }
-  
-  .category-overlay {
-    position: absolute;
-    inset: 0;
-  
-    padding: 35px;
-  
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-  
-    background:
-      linear-gradient(
-        transparent,
-        rgba(0, 0, 0, 0.75)
-      );
-  }
-  
-  .category-overlay span {
-    font-size: 12px;
-    letter-spacing: 2px;
-  }
-  
-  .category-overlay h3 {
-    font-size: 32px;
-    margin: 5px 0;
-  }
-  
-  .category-overlay p {
-    margin: 0;
-  }
-  
-  
-  /* Images temporaires */
-  
-  .clothing-category {
-    background-image: url("./assets/clothing/women/aritzia-top.png");
-  }
-  
-  .maple-category {
-    background-image: url("./assets/maple/escuminac-amber.png");
-  }
-  
-  .books-category {
-    background-image: url("./assets/hero.png");
-  }
-  
-  .games-category {
-    background-image: url("./assets/hero.png");
-  }
-  
-  
-  /* =========================
-     SECTION CANADA
-  ========================= */
-  
+
   .canadian-section {
-    background-color: #f3f1ec;
-  
-    padding: 90px max(30px, calc((100% - 1150px) / 2));
-  
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 60px;
-  }
-  
-  .canadian-content {
-    max-width: 600px;
-  }
-  
-  .canadian-content h2 {
-    font-size: 46px;
-    margin: 10px 0 20px;
-  }
-  
-  .canadian-content > p:not(.section-label) {
-    color: #555;
-    font-size: 17px;
-    line-height: 1.8;
-  }
-  
-  .secondary-button {
-    display: inline-block;
-  
-    margin-top: 15px;
-    padding: 13px 25px;
-  
-    background-color: #111;
-    color: white;
-  
-    text-decoration: none;
-  }
-  
-  .secondary-button:hover {
-    background-color: #333;
-  }
-  
-  .canadian-symbol {
+    flex-direction: column;
     text-align: center;
-    min-width: 250px;
+    padding: 60px 25px;
   }
-  
+
+  .canadian-content h2 {
+    font-size: 36px;
+  }
+
   .canadian-symbol span {
-    font-size: 100px;
+    font-size: 80px;
   }
-  
-  .canadian-symbol p {
-    font-weight: 600;
-    margin-top: 10px;
-  }
-  
-  
-  /* =========================
-     RESPONSIVE
-  ========================= */
-  
-  @media (max-width: 768px) {
-  
-    .hero-section {
-      min-height: 520px;
-    }
-  
-    .hero-content {
-      padding: 60px 25px;
-    }
-  
-    .hero-content h1 {
-      font-size: 42px;
-    }
-  
-    .categories-grid {
-      grid-template-columns: 1fr;
-    }
-  
-    .category-image {
-      height: 330px;
-    }
-  
-    .canadian-section {
-      flex-direction: column;
-      text-align: center;
-    }
-  
-    .canadian-content h2 {
-      font-size: 36px;
-    }
-  }
+}
