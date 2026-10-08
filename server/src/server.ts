@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import { connectToMongo, getDb } from "./db/mongo.js";
 import produitRouter from "./routes/produit.routes.js";
+import panierRouter from "./routes/panier.routes.js";
 
 dotenv.config();
 
@@ -37,8 +38,9 @@ async function demarrerServeur(): Promise<void> {
     // Permet à Express de recevoir des données JSON.
     app.use(express.json());
 
-    // Toutes les routes définies dans produitRouter commenceront par /api/produits.
+    // Configure les routes pour les produits et le panier.
     app.use("/api/produits", produitRouter);
+    app.use("/api/panier", panierRouter);
 
     // Route temporaire pour vérifier le fonctionnement du serveur.
     app.get("/", (_req, res) => {
