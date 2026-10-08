@@ -5,6 +5,25 @@ function HomePage() {
   return (
     <main className="home-page">
 
+     <header className="bg-dark text-white py-3">
+  <div className="container d-flex justify-content-between align-items-center">
+    
+    <h1 className="mb-0">
+      The Great Bear Shop
+    </h1>
+
+    <Link to="/Connexion" className="btn btn-primary">
+      Connexion
+    </Link>
+
+      <Link to="/Inscription" className="btn btn-primary">
+      Inscription
+    </Link>
+
+  </div>
+</header>
+
+
       {/* HERO */}
       <section className="hero-section">
         <div className="hero-overlay">

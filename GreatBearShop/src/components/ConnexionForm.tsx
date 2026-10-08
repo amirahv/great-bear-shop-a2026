@@ -17,11 +17,11 @@ function LoginForm() {
         <div className="col-md-6 col-lg-4">
           <div className="card shadow">
             <div className="card-body">
-              <h2 className="text-center mb-4">Connexion</h2>
+              <h2 className="text-center mb-4 text-dark">Connexion</h2>
 
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label htmlFor="username" className="form-label">
+                  <label htmlFor="username" className="form-label fw-bold">
                     Nom d'utilisateur
                   </label>
 
@@ -37,7 +37,7 @@ function LoginForm() {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="password" className="form-label">
+                  <label htmlFor="password" className="form-label fw-bold">
                     Mot de passe
                   </label>
 

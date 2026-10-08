@@ -7,8 +7,11 @@ import "./index.css";
 import HomePage from "./HomePage.tsx";
 import Clothing from "./pages/Clothing.tsx";
 import Livres from "./pages/PageLivres.tsx";
+import Connexion from "./pages/PageConnexion";
+import Inscription from "./pages/PageInscription.tsx";
 
 import { createBrowserRouter, RouterProvider } from "react-router";
+
 
 const router = createBrowserRouter([
   {
@@ -22,6 +25,16 @@ const router = createBrowserRouter([
   {
     path: "/livres",
     element: <Livres />,
+  },
+
+  {
+    path: "/connexion",
+    element: <Connexion />,
+  },
+
+  {
+    path: "/inscription",
+    element: <Inscription />,
   },
 ]);
 

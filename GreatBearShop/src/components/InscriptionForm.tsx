@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 
 function InscriptionForm() {
   const [nom, setNom] = useState("");
@@ -30,14 +31,14 @@ function InscriptionForm() {
         <div className="col-md-8 col-lg-6">
           <div className="card shadow">
             <div className="card-body">
-              <h2 className="text-center mb-4">
+              <h2 className="text-center mb-4 text-dark">
                 Créer un compte
               </h2>
 
               <form onSubmit={handleSubmit}>
                 <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label htmlFor="prenom" className="form-label">
+                  <div className="mb-3">
+                    <label htmlFor="prenom" className="form-label fw-bold">
                       Prénom
                     </label>
 
@@ -47,13 +48,12 @@ function InscriptionForm() {
                       className="form-control"
                       value={prenom}
                       onChange={(e) => setPrenom(e.target.value)}
-                      placeholder="Votre prénom"
                       required
                     />
                   </div>
 
-                  <div className="col-md-6 mb-3">
-                    <label htmlFor="nom" className="form-label">
+                  <div className="mb-3">
+                    <label htmlFor="nom" className="form-label fw-bold">
                       Nom
                     </label>
 
@@ -63,14 +63,13 @@ function InscriptionForm() {
                       className="form-control"
                       value={nom}
                       onChange={(e) => setNom(e.target.value)}
-                      placeholder="Votre nom"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="email" className="form-label">
+                  <label htmlFor="email" className="form-label fw-bold">
                     Adresse courriel
                   </label>
 
@@ -80,13 +79,12 @@ function InscriptionForm() {
                     className="form-control"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="exemple@email.com"
                     required
                   />
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="username" className="form-label">
+                  <label htmlFor="username" className="form-label fw-bold">
                     Nom d'utilisateur
                   </label>
 
@@ -96,13 +94,12 @@ function InscriptionForm() {
                     className="form-control"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Votre nom d'utilisateur"
                     required
                   />
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="password" className="form-label">
+                  <label htmlFor="password" className="form-label fw-bold">
                     Mot de passe
                   </label>
 
@@ -112,7 +109,6 @@ function InscriptionForm() {
                     className="form-control"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Votre mot de passe"
                     minLength={6}
                     required
                   />
@@ -123,7 +119,7 @@ function InscriptionForm() {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="confirmPassword" className="form-label">
+                  <label htmlFor="confirmPassword" className="form-label fw-bold">
                     Confirmer le mot de passe
                   </label>
 
@@ -131,27 +127,13 @@ function InscriptionForm() {
                     type="password"
                     id="confirmPassword"
                     className="form-control"
+                    style={{ fontWeight: "bold" }}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirmez votre mot de passe"
                     required
                   />
                 </div>
 
-                  <div className="mb-3">
-                  <label htmlFor="CreditCard" className="form-label">
-                    Entrez votre numéro de carte de crédit
-                  </label>
-
-                 <input
-                    type="text"
-                    id="CreditCard"
-                    className="form-control"
-                    value={creditCard}
-                    onChange={(e) => setCreditCard(e.target.value)}
-                    placeholder="Numéro de carte de crédit"
-                  />
-                </div>
 
                 <button type="submit" className="btn btn-primary w-100">
                   S'inscrire
@@ -160,7 +142,9 @@ function InscriptionForm() {
 
               <p className="text-center mt-3 mb-0">
                 Vous avez déjà un compte ?{" "}
-                <a href="/login">Se connecter</a>
+                <Link to="/connexion" className="text-primary">
+            Se Connecter
+          </Link>
               </p>
             </div>
           </div>
