@@ -1,13 +1,13 @@
 import { useState } from "react";
 
 function LoginForm() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log("Email:", email);
+    console.log("Nom d'utilisateur:", username);
     console.log("Password:", password);
   };
 
@@ -21,17 +21,17 @@ function LoginForm() {
 
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label htmlFor="email" className="form-label">
-                    Adresse courriel
+                  <label htmlFor="username" className="form-label">
+                    Nom d'utilisateur
                   </label>
 
                   <input
-                    type="email"
-                    id="email"
+                    type="text"
+                    id="username"
                     className="form-control"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="exemple@email.com"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Votre nom d'utilisateur"
                     required
                   />
                 </div>

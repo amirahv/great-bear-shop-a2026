@@ -4,8 +4,10 @@ function InscriptionForm() {
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [creditCard, setCreditCard] = useState("");
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -18,6 +20,7 @@ function InscriptionForm() {
     console.log("Nom :", nom);
     console.log("Prénom :", prenom);
     console.log("Email :", email);
+    console.log("Nom d'utilisateur :", username);
     console.log("Mot de passe :", password);
   };
 
@@ -83,6 +86,22 @@ function InscriptionForm() {
                 </div>
 
                 <div className="mb-3">
+                  <label htmlFor="username" className="form-label">
+                    Nom d'utilisateur
+                  </label>
+
+                  <input
+                    type="text"
+                    id="username"
+                    className="form-control"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Votre nom d'utilisateur"
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
                   <label htmlFor="password" className="form-label">
                     Mot de passe
                   </label>
@@ -116,6 +135,21 @@ function InscriptionForm() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirmez votre mot de passe"
                     required
+                  />
+                </div>
+
+                  <div className="mb-3">
+                  <label htmlFor="CreditCard" className="form-label">
+                    Entrez votre numéro de carte de crédit
+                  </label>
+
+                 <input
+                    type="text"
+                    id="CreditCard"
+                    className="form-control"
+                    value={creditCard}
+                    onChange={(e) => setCreditCard(e.target.value)}
+                    placeholder="Numéro de carte de crédit"
                   />
                 </div>
 
