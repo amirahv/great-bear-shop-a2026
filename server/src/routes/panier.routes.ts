@@ -3,6 +3,7 @@ import {
   obtenirPanier,
   ajouterArticlePanier,
   modifierQuantiteArticle,
+  retirerArticlePanier,
 } from "../controllers/panier.controller.js";
 
 const panierRouter = Router();
@@ -34,5 +35,14 @@ panierRouter.post("/articles", ajouterArticlePanier);
  * d'authentification dans res.locals.utilisateurId.//////////////////////////attend Martin
  */
 panierRouter.patch("/articles/:produitId", modifierQuantiteArticle);
+
+/**
+ * DELETE /api/panier/articles/:produitId
+ *
+ * Retire un article du panier de l'utilisateur connecté.
+ * L'identifiant de l'utilisateur doit être fourni par le middleware
+ * d'authentification dans res.locals.utilisateurId.//////////////////////////attend Martin
+ */
+panierRouter.delete("/articles/:produitId", retirerArticlePanier);
 
 export default panierRouter;
