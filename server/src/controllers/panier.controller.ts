@@ -71,6 +71,8 @@ export async function obtenirPanier(
       return;
     }
 
+    // pour afficher les détails des produits dans le panier au lieu de res.status(200).json(panier);
+
     // Récupère les produits correspondant aux articles du panier.
     const identifiantsProduits = panier.articles.map(
       (article) => article.produitId,
