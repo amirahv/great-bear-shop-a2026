@@ -27,8 +27,3 @@ export function getDb(): Db {
 
   return database;
 }
-
-// Reference la collection "utilisateurs" dans la bd GreatBearShop
-export function getUtilisateurs(): Collection<Utilisateur> {
-  return getDb().collection("utilisateurs");
-}

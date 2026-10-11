@@ -4,16 +4,14 @@ import { Adresse } from "../types/adresse.type.js";
 import { Request, Response } from "express";
 import { getDb } from "../db/mongo.js";
 import bcrypt from "bcrypt";
-import { AdresseType } from "../types/adresse-type.type.js";
 import { UtilisateurRole } from "../types/utilisateur-role.type.js";
-import { hash } from "node:crypto";
 
 /**
  * Developpement du controller pour la collection "utilisateur" dans "GreatBearShop"
  *
  * Fonctions:
  * - CREATE : ajouterUtilisateurClient()
- * - READ : getTousUtilisateurs(), getUtilisateurParId()
+ * - READ : getTousUtilisateurs(), getUtilisateurParId(), getUtilisateurParCourriel()
  * - UPDATE : updateUtilisateurParId()
  * - DELETE : deleteUtilisateurParId()
  *
