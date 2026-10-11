@@ -314,12 +314,14 @@ export async function modifierQuantiteArticle(
         },
         {
           $set: {
+            // Le $ représente l’article trouvé dans le tableau. MongoDB modifie sa quantité et conserve les autres articles.
             "articles.$.quantite": quantite,
             dateModification: new Date(),
           },
         },
       );
 
+    // .matchedCount indique combien de documents ont été trouvés pour la mise à jour. Si c'est 0, l'article n'était pas dans le panier.
     if (resultat.matchedCount === 0) {
       res.status(404).json({
         message: "Cet article n'est pas présent dans votre panier.",
