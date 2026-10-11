@@ -340,3 +340,71 @@ export async function modifierQuantiteArticle(
     });
   }
 }
+
+/**
+ * Retire un article du panier de l'utilisateur connecté.
+ *
+ * @param req - Requête contenant produitId dans les paramètres.
+ * @param res - Réponse contenant l'identifiant utilisateur dans res.locals.
+ * @author Amir
+ */
+export async function retirerArticlePanier(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const utilisateurId: unknown = res.locals.utilisateurId;
+
+    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+      res.status(401).json({
+        message: "Vous devez être connecté pour modifier votre panier.",
+      });
+      return;
+    }
+
+    const produitId = req.params.produitId;
+
+    if (typeof produitId !== "string" || !ObjectId.isValid(produitId)) {
+      res.status(400).json({
+        message: "L'identifiant du produit est invalide.",
+      });
+      return;
+    }
+
+    const identifiantProduit = new ObjectId(produitId);
+
+    const resultat = await getDb()
+      .collection<Panier>("paniers")
+      .updateOne(
+        {
+          utilisateurId: new ObjectId(utilisateurId),
+          "articles.produitId": identifiantProduit,
+        },
+        {
+          $pull: {
+            articles: { produitId: identifiantProduit },
+          },
+          $set: {
+            dateModification: new Date(),
+          },
+        },
+      );
+
+    if (resultat.matchedCount === 0) {
+      res.status(404).json({
+        message: "Cet article n'est pas présent dans votre panier.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "L'article a été retiré du panier.",
+    });
+  } catch (error) {
+    console.error("Erreur lors du retrait de l'article :", error);
+
+    res.status(500).json({
+      message: "Impossible de retirer l'article du panier.",
+    });
+  }
+}
