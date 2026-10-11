@@ -1,4 +1,5 @@
 import { Collection, Db, MongoClient } from "mongodb";
+import { Utilisateur } from "../models/utilisateur.model.js";
 
 let mongoClient: MongoClient;
 let database: Db | undefined;
@@ -18,6 +19,7 @@ export async function connectToMongo(uri: string): Promise<void> {
   }
 }
 
+// Permet d'acceder a la base de donnees GreatBearShop
 export function getDb(): Db {
   if (!database) {
     throw new Error("MongoDB is not connected. Call connectToMongo() first.");

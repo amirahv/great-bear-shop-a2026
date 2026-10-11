@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import { connectToMongo } from "./db/mongo.js";
 import produitRouter from "./routes/produit.routes.js";
+import utilisateurRouter from "./routes/utilisateur.route.js";
 
 dotenv.config();
 
@@ -33,6 +34,9 @@ async function demarrerServeur(): Promise<void> {
 
     // Toutes les routes définies dans produitRouter commenceront par /api/produits.
     app.use("/api/produits", produitRouter);
+
+    // Toutes les routes definies dans utilisateurRouter commenceront par /api/utilisateurs
+    app.use("/api/utilisateurs", utilisateurRouter);
 
     // Route temporaire pour vérifier le fonctionnement du serveur.
     app.get("/", (_req, res) => {
