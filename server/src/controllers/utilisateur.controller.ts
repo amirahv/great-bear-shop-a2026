@@ -155,6 +155,13 @@ export async function getTousUtilisateurs(
       .find({}, { projection: PROJECTION_SANS_MOT_DE_PASSE })
       .toArray();
 
+    if (collectionUtilisateur.length === 0) {
+      res.status(404).json({
+        message: "Aucun utilisateur",
+      });
+      return;
+    }
+
     // retourne la liste des utilisateurs dans la reponse de l'API
     res.status(200).json(collectionUtilisateur);
   } catch (error) {
@@ -240,10 +247,15 @@ export async function getUtilisateurParCourriel(
   res: Response,
 ): Promise<void> {
   try {
-    const couriel = req.body.courriel as string;
+    //const courriel = req.body.courriel as string;
+    const courriel = req.params.courriel as string;
 
     // verification du courriel pour s'assurer qu'il est valide
-    if (!couriel || !REGEX_COURRIEL.test(couriel) || couriel.trim() === "") {
+    if (
+      !courriel ||
+      !REGEX_COURRIEL.test(courriel.trim()) ||
+      courriel.trim() === ""
+    ) {
       res.status(400).json({
         message: "Courriel invalide",
       });
@@ -254,7 +266,7 @@ export async function getUtilisateurParCourriel(
     const utilisateur = await getDb()
       .collection("utilisateurs")
       .findOne(
-        { courriel: couriel.trim().toLowerCase() },
+        { courriel: courriel.trim().toLowerCase() },
         { projection: PROJECTION_SANS_MOT_DE_PASSE },
       );
 

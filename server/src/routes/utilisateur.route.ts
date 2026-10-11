@@ -11,45 +11,45 @@ import {
 const utilisateurRouter = Router();
 
 /**
- * GET /api/utilisateurs/
+ * POST /api/utilisateurs/ajouter
+ *
+ * Crée un nouvel utilisateur client dans la collection "utilisateurs" avec un mot de passe hash et role client
+ */
+utilisateurRouter.post("/ajouter", ajouterUtilisateurClient);
+
+/**
+ * GET /api/utilisateurs/lister
  *
  * Retourne la liste de tous les utilisateurs sans leur mot de passe
  */
-utilisateurRouter.get("/", getTousUtilisateurs);
+utilisateurRouter.get("/lister", getTousUtilisateurs);
 
 /**
- * GET /api/utilisateurs/:id
+ * GET /api/utilisateurs/chercher/:id
  *
  * Retourne un utilisateur spécifique trouvé par son identifiant MongoDB sans son mot de passe
  */
-utilisateurRouter.get("/:id", getUtilisateurParId);
+utilisateurRouter.get("/chercher/:id", getUtilisateurParId);
 
 /**
- * GET /api/utilisateurs/courriel/:courriel
+ * GET /api/utilisateurs/chercher/courriel
  *
  * Retourne un utilisateur spécifique trouvé par son courriel dans la collection "utilisateurs" sans son mot de passe
  */
-utilisateurRouter.get("/courriel/:courriel", getUtilisateurParCourriel);
+utilisateurRouter.get("/chercher/:courriel", getUtilisateurParCourriel);
 
 /**
- * POST /api/utilisateurs/
- *
- * Crée un nouvel utilisateur client dans la collection "utilisateurs" avec un mot de passe haché
- */
-utilisateurRouter.post("/", ajouterUtilisateurClient);
-
-/**
- * PUT /api/utilisateurs/:id
+ * PUT /api/utilisateurs/actualiser/:id
  *
  * Met à jour un utilisateur spécifique trouvé par son identifiant MongoDB
  */
-utilisateurRouter.put("/:id", updateUtilisateurParId);
+utilisateurRouter.put("/actualiser/:id", updateUtilisateurParId);
 
 /**
- * DELETE /api/utilisateurs/:id
+ * DELETE /api/utilisateurs/supprimer/:id
  *
  * Supprime un utilisateur spécifique trouvé par son identifiant MongoDB
  */
-utilisateurRouter.delete("/:id", deleteUtilisateurParId);
+utilisateurRouter.delete("/supprimer/:id", deleteUtilisateurParId);
 
 export default utilisateurRouter;
