@@ -232,3 +232,109 @@ export async function ajouterArticlePanier(
     });
   }
 }
+
+/**
+ * Modifie la quantité d'un article déjà présent dans le panier.
+ *
+ * @param req - Requête contenant produitId dans les paramètres
+ * et la nouvelle quantité dans req.body.
+ * @param res - Réponse contenant l'identifiant utilisateur dans res.locals.
+ * @author Amir
+ */
+export async function modifierQuantiteArticle(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const utilisateurId: unknown = res.locals.utilisateurId;
+
+    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+      res.status(401).json({
+        message: "Vous devez être connecté pour modifier votre panier.",
+      });
+      return;
+    }
+
+    const produitId = req.params.produitId;
+
+    if (typeof produitId !== "string" || !ObjectId.isValid(produitId)) {
+      res.status(400).json({
+        message: "L'identifiant du produit est invalide.",
+      });
+      return;
+    }
+
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      res.status(400).json({
+        message: "Le corps de la requête doit être un objet JSON.",
+      });
+      return;
+    }
+
+    const quantite: unknown = req.body.quantite;
+
+    if (
+      typeof quantite !== "number" ||
+      !Number.isSafeInteger(quantite) ||
+      quantite <= 0
+    ) {
+      res.status(400).json({
+        message: "La quantité doit être un entier positif.",
+      });
+      return;
+    }
+
+    const identifiantProduit = new ObjectId(produitId);
+
+    const produit = await getDb().collection<Produit>("produits").findOne({
+      _id: identifiantProduit,
+      actif: true,
+    });
+
+    if (!produit) {
+      res.status(404).json({
+        message: "Produit introuvable ou indisponible.",
+      });
+      return;
+    }
+
+    if (quantite > produit.stock) {
+      res.status(400).json({
+        message: "La quantité demandée dépasse le stock disponible.",
+      });
+      return;
+    }
+
+    const resultat = await getDb()
+      .collection<Panier>("paniers")
+      .updateOne(
+        {
+          utilisateurId: new ObjectId(utilisateurId),
+          "articles.produitId": identifiantProduit,
+        },
+        {
+          $set: {
+            "articles.$.quantite": quantite,
+            dateModification: new Date(),
+          },
+        },
+      );
+
+    if (resultat.matchedCount === 0) {
+      res.status(404).json({
+        message: "Cet article n'est pas présent dans votre panier.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "La quantité de l'article a été modifiée.",
+    });
+  } catch (error) {
+    console.error("Erreur lors de la modification de la quantité :", error);
+
+    res.status(500).json({
+      message: "Impossible de modifier la quantité de l'article.",
+    });
+  }
+}
