@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
-import { ObjectId } from "mongodb";
+import { MongoServerError, ObjectId } from "mongodb";
 import { getDb } from "../db/mongo.js";
-import type { Panier } from "../models/panier.model.js";
+import type { ArticlePanier, Panier } from "../models/panier.model.js";
+import type { Produit } from "../models/produit.model.js";
 
 type DonneesArticlePanier = {
   produitId: string;
