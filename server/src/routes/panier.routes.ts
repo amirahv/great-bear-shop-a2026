@@ -8,7 +8,7 @@ const panierRouter = Router();
  *
  * Récupère le panier de l'utilisateur connecté.
  * L'identifiant de l'utilisateur doit être fourni par le middleware
- * d'authentification dans res.locals.utilisateurId.////////////////////////////////////attend Martin
+ * d'authentification dans res.locals.utilisateurId.//////////////////////////attend Martin
  */
 
 panierRouter.get("/", obtenirPanier);

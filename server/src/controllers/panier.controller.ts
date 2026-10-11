@@ -3,6 +3,36 @@ import { ObjectId } from "mongodb";
 import { getDb } from "../db/mongo.js";
 import type { Panier } from "../models/panier.model.js";
 
+type DonneesArticlePanier = {
+  produitId: string;
+  quantite: number;
+};
+
+/**
+ * Vérifie les données reçues pour un article du panier.
+ *
+ * @param valeur - Données à vérifier.
+ * @returns true si le produitId et la quantité sont valides.
+ * @author Amir
+ */
+function estDonneesArticlePanierValides(
+  valeur: unknown,
+): valeur is DonneesArticlePanier {
+  if (!valeur || typeof valeur !== "object" || Array.isArray(valeur)) {
+    return false;
+  }
+
+  const donnees = valeur as Record<string, unknown>;
+
+  return (
+    typeof donnees.produitId === "string" &&
+    ObjectId.isValid(donnees.produitId) &&
+    typeof donnees.quantite === "number" &&
+    Number.isSafeInteger(donnees.quantite) &&
+    donnees.quantite > 0
+  );
+}
+
 /**
  * Récupère le panier de l'utilisateur connecté.
  *
