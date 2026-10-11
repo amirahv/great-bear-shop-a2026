@@ -30,7 +30,7 @@ import { hash } from "node:crypto";
  */
 
 // bloque le retour du mot de passe a partir de la base de donnees
-const PROJECTION_SANS_MOT_DE_PASSE = { motdePasseHash: 0 };
+const PROJECTION_SANS_MOT_DE_PASSE = { motDePasseHash: 0 };
 
 // cout processus qui determine la complexite hashage hasher des donnees
 const NOMBRE_SALT_ROUNDS = 10;
@@ -53,7 +53,7 @@ export async function ajouterUtilisateurClient(
   res: Response,
 ): Promise<void> {
   try {
-    if (!req.body || req.body !== "object" || Array.isArray(req.body)) {
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
       res.status(400).json({
         message: "body request invalide.",
       });
@@ -79,6 +79,7 @@ export async function ajouterUtilisateurClient(
       res.status(400).json({
         message: "Donnees utilisateurs invalides.",
       });
+      return;
     }
 
     // validation deja fait dans le if superieur que courriel est un string
@@ -151,7 +152,7 @@ export async function getTousUtilisateurs(
 ): Promise<void> {
   try {
     // on recupere la collection "utilisateurs" et on exclut le mot de passe dans la projection
-    const collectionUtilisateur = getDb()
+    const collectionUtilisateur = await getDb()
       .collection("utilisateurs")
       .find({}, { projection: PROJECTION_SANS_MOT_DE_PASSE })
       .toArray();
@@ -210,6 +211,7 @@ export async function getUtilisateurParId(
       res.status(404).json({
         message: "utilisateur introuvable",
       });
+      return;
     }
 
     // on retourne l'utilisateur trouve
@@ -226,6 +228,15 @@ export async function getUtilisateurParId(
   }
 }
 
+/**
+ * READ
+ *
+ * API qui retourne un utilisateur specifique trouve par son courriel dans la collection "utilisateurs" sans son mot de passe
+ *
+ * @param req courriel de l'utilisateur a recuperer dans req.body.courriel
+ * @param res l'utilisateur trouve dans la collection "utilisateurs" sans son mot de passe ou un message d'erreur si l'utilisateur n'est pas trouve
+ * @returns l'utilisateur trouve ou un message d'erreur si l'utilisateur n'existe pas
+ */
 export async function getUtilisateurParCourriel(
   req: Request,
   res: Response,
@@ -446,6 +457,7 @@ export async function deleteUtilisateurParId(
       res.status(404).json({
         message: "Utilisateur introuvable",
       });
+      return;
     }
 
     res.status(200).json({
