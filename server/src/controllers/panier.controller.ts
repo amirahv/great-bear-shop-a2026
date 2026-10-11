@@ -156,6 +156,7 @@ export async function ajouterArticlePanier(
       return;
     }
 
+    // Met à jour la quantité si l'article existe, sinon ajoute un nouvel article.
     if (articleExistant) {
       articleExistant.quantite = quantiteFinale;
     } else {
@@ -176,6 +177,7 @@ export async function ajouterArticlePanier(
 
       const resultat = await collectionPaniers.insertOne(nouveauPanier);
 
+      // Retourne le panier nouvellement créé avec l'identifiant généré par MongoDB.
       res.status(201).json({
         ...nouveauPanier,
         _id: resultat.insertedId,
@@ -197,6 +199,11 @@ export async function ajouterArticlePanier(
       },
     );
 
+    /**
+     * Si aucun document n'a été mis à jour (resultat.matchedCount === 0), cela signifie que le panier a été modifié
+     * par une autre requête entre le moment où nous l'avons lu et celui où nous avons tenté de le mettre à jour.
+     * Dans ce cas, nous renvoyons un code 409 (Conflict) pour indiquer au client qu'il doit réessayer.
+     */
     if (resultat.matchedCount === 0) {
       res.status(409).json({
         message: "Le panier a changé. Veuillez réessayer.",
