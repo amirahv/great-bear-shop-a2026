@@ -71,7 +71,64 @@ export async function obtenirPanier(
       return;
     }
 
-    res.status(200).json(panier);
+    // Récupère les produits correspondant aux articles du panier.
+    const identifiantsProduits = panier.articles.map(
+      (article) => article.produitId,
+    );
+
+    const produits = await getDb()
+      .collection<Produit>("produits")
+      .find({
+        _id: { $in: identifiantsProduits },
+      })
+      .toArray();
+
+    // Prépare les informations nécessaires à l'affichage.
+    const articlesDetailles = panier.articles.map((article) => {
+      const produit = produits.find((produit) =>
+        produit._id.equals(article.produitId),
+      );
+
+      // Convertit le prix en centimes pour les calculs.
+      const prixEnCentimes = produit ? Math.round(produit.prix * 100) : null;
+
+      return {
+        produitId: article.produitId,
+        nom: produit?.nom ?? "Produit indisponible",
+        images: produit?.images ?? [],
+        quantite: article.quantite,
+
+        prixUnitaire: prixEnCentimes !== null ? prixEnCentimes / 100 : null,
+
+        totalLigne:
+          prixEnCentimes !== null
+            ? (prixEnCentimes * article.quantite) / 100
+            : null,
+
+        disponible:
+          produit !== undefined &&
+          produit.actif &&
+          article.quantite <= produit.stock,
+      };
+    });
+
+    // Calcule le sous-total lorsque tous les prix sont connus.
+    let sousTotalCentimes = 0;
+    let prixComplets = true;
+
+    for (const article of articlesDetailles) {
+      if (article.totalLigne === null) {
+        prixComplets = false;
+      } else {
+        sousTotalCentimes += Math.round(article.totalLigne * 100);
+      }
+    }
+
+    res.status(200).json({
+      ...panier,
+      articles: articlesDetailles,
+      sousTotal: prixComplets ? sousTotalCentimes / 100 : null,
+    });
   } catch (error) {
     console.error("Erreur lors de la récupération du panier :", error);
 
