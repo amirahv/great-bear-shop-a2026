@@ -1,0 +1,119 @@
+
+.shop-navbar {
+    width: 100%;
+    height: 76px;
+    background: #f8f5ef;
+  
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  
+    position: relative;
+    z-index: 1100;
+  
+    border-bottom: 1px solid #e8e1d7;
+  }
+  
+  .shop-menu-button {
+    position: absolute;
+    left: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+  
+    border: none;
+    background: transparent;
+    color: #222;
+  
+    font-size: 29px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 8px 12px;
+  }
+  
+  .shop-menu-button:hover {
+    color: #8a6f50;
+  }
+  
+  .shop-logo {
+    color: #222;
+    text-decoration: none;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-align: center;
+  }
+  
+  .shop-logo:hover {
+    color: #222;
+  }
+  
+  .shop-menu-overlay {
+    position: fixed;
+    top: 76px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  
+    background: #f8f5ef;
+    z-index: 1050;
+    overflow-y: auto;
+  }
+  
+  .shop-menu-links {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
+  
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 75px 40px;
+  }
+  
+  .shop-menu-link {
+    color: #222;
+    text-decoration: none;
+    font-size: 29px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    transition: 0.2s;
+  }
+  
+  .shop-menu-link:hover {
+    color: #8a6f50;
+    transform: translateX(6px);
+  }
+  
+  .shop-menu-link.selected {
+    font-weight: 700;
+  }
+  
+  @media (max-width: 768px) {
+    .shop-navbar {
+      height: 65px;
+    }
+  
+    .shop-menu-button {
+      left: 10px;
+      font-size: 26px;
+    }
+  
+    .shop-logo {
+      font-size: 14px;
+      letter-spacing: 1px;
+      max-width: 65%;
+    }
+  
+    .shop-menu-overlay {
+      top: 65px;
+    }
+  
+    .shop-menu-links {
+      padding: 45px 25px;
+    }
+  
+    .shop-menu-link {
+      font-size: 23px;
+    }
+  }
+  

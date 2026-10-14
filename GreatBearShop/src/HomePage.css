@@ -1,22 +1,25 @@
+
+/* PAGE D'ACCUEIL */
+
 .home-page {
   width: 100%;
   margin: 0;
   padding: 0;
+  background: #f8f5ef;
 }
 
-/* =========================
-   HERO - GRANDE IMAGE ACCUEIL
-========================= */
+/* IMAGE PRINCIPALE */
 
 .hero-section {
-  min-height: 620px;
+  width: 100%;
+  min-height: 560px;
 
-  background:
+  background-image:
     linear-gradient(
-      rgba(0, 0, 0, 0.35),
-      rgba(0, 0, 0, 0.55)
+      rgba(0, 0, 0, 0.18),
+      rgba(0, 0, 0, 0.42)
     ),
-    url("./assets/home-hero.jpg");
+    url("./assets/home-hero.png");
 
   background-size: cover;
   background-position: center;
@@ -24,6 +27,7 @@
 
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .hero-overlay {
@@ -31,102 +35,106 @@
 }
 
 .hero-content {
-  max-width: 1200px;
-  width: 100%;
+  max-width: 1100px;
   margin: auto;
-  padding: 80px 40px;
+  padding: 90px 25px;
+  text-align: center;
   color: white;
 }
 
 .hero-small-title {
   font-size: 14px;
-  letter-spacing: 3px;
-  font-weight: 600;
-  margin-bottom: 15px;
-}
-
-.hero-content h1 {
-  font-size: 64px;
   font-weight: 700;
-  line-height: 1.05;
+  letter-spacing: 4px;
   margin-bottom: 25px;
 }
 
+.hero-content h1 {
+  font-size: clamp(40px, 5vw, 68px);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 25px;
+  color: white;
+}
+
 .hero-description {
-  max-width: 550px;
+  max-width: 650px;
+  margin: 0 auto 35px;
   font-size: 18px;
   line-height: 1.7;
-  margin-bottom: 35px;
+  color: white;
 }
 
 .hero-button {
   display: inline-block;
-  background-color: white;
+  padding: 15px 32px;
+  background: #fff;
   color: #111;
-  padding: 14px 28px;
-  text-decoration: none;
-  font-weight: 600;
+  border-radius: 5px;
+  font-weight: 700;
   transition: 0.3s;
 }
 
 .hero-button:hover {
-  background-color: #111;
+  background: #242424;
   color: white;
 }
 
-
-/* =========================
-   CATÉGORIES
-========================= */
+/* CATÉGORIES */
 
 .categories-section {
-  max-width: 1250px;
-  margin: auto;
-  padding: 90px 30px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 80px 6%;
+  background: #f8f5ef;
 }
 
 .section-heading {
   text-align: center;
-  max-width: 650px;
-  margin: 0 auto 50px;
+  max-width: 750px;
+  margin: 0 auto 45px;
 }
 
 .section-label {
-  letter-spacing: 3px;
   font-size: 13px;
   font-weight: 700;
+  letter-spacing: 3px;
+  color: #6b5b47;
 }
 
 .section-heading h2 {
-  font-size: 42px;
-  margin: 10px 0;
+  font-size: 44px;
+  font-weight: 800;
+  margin: 12px 0 20px;
+  color: #222;
 }
 
 .section-heading p {
   color: #666;
+  font-size: 17px;
   line-height: 1.7;
 }
 
-
-/* =========================
-   GRILLE DES CATÉGORIES
-========================= */
+/* GRILLE */
 
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 25px;
 }
 
 .category-card {
+  display: block;
   text-decoration: none;
   color: white;
 }
 
 .category-image {
-  height: 400px;
+  height: 350px;
   position: relative;
   overflow: hidden;
+  border-radius: 10px;
 
   background-size: cover;
   background-position: center;
@@ -139,82 +147,68 @@
   transform: translateY(-5px);
 }
 
-
-/* =========================
-   TEXTE SUR LES CATÉGORIES
-========================= */
-
 .category-overlay {
   position: absolute;
   inset: 0;
-
   padding: 35px;
 
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
 
-  background:
-    linear-gradient(
-      transparent,
-      rgba(0, 0, 0, 0.75)
-    );
+  background: linear-gradient(
+    transparent 25%,
+    rgba(0, 0, 0, 0.8)
+  );
 }
 
 .category-overlay span {
   font-size: 12px;
+  font-weight: 700;
   letter-spacing: 2px;
+  color: white;
 }
 
 .category-overlay h3 {
-  font-size: 32px;
-  margin: 5px 0;
+  font-size: 30px;
+  font-weight: 800;
+  margin: 8px 0;
+  color: white;
 }
 
 .category-overlay p {
+  color: white;
   margin: 0;
 }
 
+/* IMAGES */
 
-/* =========================
-   IMAGES DES CATÉGORIES
-========================= */
-
-/* Vêtements */
 .clothing-category {
   background-image:
     url("./assets/clothing/women/aritzia-top.png");
 }
 
-/* Sirop d'érable */
 .maple-category {
   background-image:
     url("./assets/maple/escuminac-amber.png");
 }
 
-/* Livres - temporaire */
 .books-category {
   background-image:
-    url("./assets/hero.png");
+    url("./assets/home-hero.png");
 }
 
-/* Jeux vidéo - temporaire */
 .games-category {
   background-image:
-    url("./assets/hero.png");
+    url("./assets/home-hero.png");
 }
 
-
-/* =========================
-   SECTION PRODUITS CANADIENS
-========================= */
+/* NOTRE MISSION */
 
 .canadian-section {
-  background-color: #f3f1ec;
-
-  padding:
-    90px
-    max(30px, calc((100% - 1150px) / 2));
+  width: 100%;
+  background: #e9e1d3;
+  padding: 85px 8%;
 
   display: flex;
   align-items: center;
@@ -223,12 +217,14 @@
 }
 
 .canadian-content {
-  max-width: 600px;
+  max-width: 650px;
 }
 
 .canadian-content h2 {
-  font-size: 46px;
-  margin: 10px 0 20px;
+  font-size: clamp(34px, 4vw, 48px);
+  font-weight: 800;
+  color: #222;
+  margin: 12px 0 20px;
 }
 
 .canadian-content > p:not(.section-label) {
@@ -237,66 +233,52 @@
   line-height: 1.8;
 }
 
-
-/* =========================
-   BOUTON EXPLORER
-========================= */
-
 .secondary-button {
   display: inline-block;
+  margin-top: 18px;
+  padding: 14px 28px;
 
-  margin-top: 15px;
-  padding: 13px 25px;
-
-  background-color: #111;
+  background: #222;
   color: white;
-
-  text-decoration: none;
+  border-radius: 5px;
+  font-weight: 600;
 
   transition: 0.3s;
 }
 
 .secondary-button:hover {
-  background-color: #333;
+  background: #66523c;
   color: white;
 }
 
-
-/* =========================
-   FEUILLE D'ÉRABLE
-========================= */
-
 .canadian-symbol {
   text-align: center;
-  min-width: 250px;
+  min-width: 220px;
 }
 
 .canadian-symbol span {
-  font-size: 100px;
+  font-size: 95px;
 }
 
 .canadian-symbol p {
-  font-weight: 600;
-  margin-top: 10px;
+  color: #222;
+  font-weight: 700;
+  margin-top: 12px;
 }
 
-
-/* =========================
-   RESPONSIVE - TÉLÉPHONE
-========================= */
+/* RESPONSIVE */
 
 @media (max-width: 768px) {
-
   .hero-section {
     min-height: 520px;
   }
 
   .hero-content {
-    padding: 60px 25px;
+    padding: 65px 22px;
   }
 
   .hero-content h1 {
-    font-size: 42px;
+    font-size: 40px;
   }
 
   .hero-description {
@@ -316,20 +298,16 @@
   }
 
   .category-image {
-    height: 330px;
+    height: 320px;
   }
 
   .canadian-section {
     flex-direction: column;
     text-align: center;
-    padding: 60px 25px;
-  }
-
-  .canadian-content h2 {
-    font-size: 36px;
+    padding: 65px 25px;
   }
 
   .canadian-symbol span {
-    font-size: 80px;
+    font-size: 75px;
   }
 }
