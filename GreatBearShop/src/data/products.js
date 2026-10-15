@@ -1,4 +1,31 @@
+import kotnTshirt from "../assets/clothing/women/kotn-tshirt.png";
+import aritziaTop from "../assets/clothing/women/aritzia-top.png";
+import rootsSweater from "../assets/clothing/women/roots-sweater.png";
+import tentreeHoodie from "../assets/clothing/women/tentree-hoodie.png";
+import frankAndOakPants from "../assets/clothing/women/frankandoak-pants.png";
+import aritziaJeans from "../assets/clothing/women/aritzia-jeans.png";
+import tentreeDress from "../assets/clothing/women/tentree-dress.png";
+import aritziaSkirt from "../assets/clothing/women/aritzia-skirt.png";
+import tentreeJacket from "../assets/clothing/women/tentree-jacket.png";
+import mackageCoat from "../assets/clothing/women/mackage-coat.png";
+
+
+import kotnMenTshirt from "../assets/clothing/men/kotn-tshirt.png";
+import frankAndOakShirt from "../assets/clothing/men/frankandoak-shirt.png";
+import rootsMenSweater from "../assets/clothing/men/roots-sweater.png";
+import rootsHoodie from "../assets/clothing/men/roots-hoodie.png";
+import kotnPants from "../assets/clothing/men/kotn-pants.png";
+import frankAndOakJeans from "../assets/clothing/men/frankandoak-jeans.png";
+import tentreeShorts from "../assets/clothing/men/tentree-shorts.png";
+import arcteryxJacket from "../assets/clothing/men/arcteryx-jacket.png";
+import canadaGooseParka from "../assets/clothing/men/canadagoose-parka.png";
+import rootsGraphicTshirt from "../assets/clothing/men/roots-graphic-tshirt.png";
+
+
 const products = [
+  // =========================
+  // FEMME
+  // =========================
   {
     id: 1,
     name: "T-shirt classique",
@@ -6,7 +33,7 @@ const products = [
     category: "T-shirts",
     gender: "Femme",
     price: 29.99,
-    image: "/images/women-tshirt.jpg"
+    image: kotnTshirt,
   },
   {
     id: 2,
@@ -15,7 +42,7 @@ const products = [
     category: "Hauts",
     gender: "Femme",
     price: 39.99,
-    image: "/images/women-top.jpg"
+    image: aritziaTop,
   },
   {
     id: 3,
@@ -24,7 +51,7 @@ const products = [
     category: "Chandails",
     gender: "Femme",
     price: 59.99,
-    image: "/images/women-sweater.jpg"
+    image: rootsSweater,
   },
   {
     id: 4,
@@ -33,7 +60,7 @@ const products = [
     category: "Hoodies",
     gender: "Femme",
     price: 69.99,
-    image: "/images/women-hoodie.jpg"
+    image: tentreeHoodie,
   },
   {
     id: 5,
@@ -42,7 +69,7 @@ const products = [
     category: "Pantalons",
     gender: "Femme",
     price: 64.99,
-    image: "/images/women-pants.jpg"
+    image: frankAndOakPants,
   },
   {
     id: 6,
@@ -51,16 +78,16 @@ const products = [
     category: "Jeans",
     gender: "Femme",
     price: 79.99,
-    image: "/images/women-jeans.jpg"
+    image: aritziaJeans,
   },
   {
     id: 7,
     name: "Robe décontractée",
-    brand: "Kotn",
+    brand: "tentree",
     category: "Robes",
     gender: "Femme",
     price: 74.99,
-    image: "/images/women-dress.jpg"
+    image: tentreeDress,
   },
   {
     id: 8,
@@ -69,7 +96,7 @@ const products = [
     category: "Jupes",
     gender: "Femme",
     price: 54.99,
-    image: "/images/women-skirt.jpg"
+    image: aritziaSkirt,
   },
   {
     id: 9,
@@ -78,7 +105,7 @@ const products = [
     category: "Vestes",
     gender: "Femme",
     price: 89.99,
-    image: "/images/women-jacket.jpg"
+    image: tentreeJacket,
   },
   {
     id: 10,
@@ -87,8 +114,10 @@ const products = [
     category: "Manteaux",
     gender: "Femme",
     price: 149.99,
-    image: "/images/women-coat.jpg"
+    image: mackageCoat,
   },
+
+  // HOMME
   {
     id: 11,
     name: "T-shirt classique",
@@ -96,7 +125,7 @@ const products = [
     category: "T-shirts",
     gender: "Homme",
     price: 29.99,
-    image: "/images/men-tshirt.jpg"
+    image: kotnMenTshirt,
   },
   {
     id: 12,
@@ -105,7 +134,7 @@ const products = [
     category: "Chemises",
     gender: "Homme",
     price: 49.99,
-    image: "/images/men-shirt.jpg"
+    image: frankAndOakShirt,
   },
   {
     id: 13,
@@ -114,7 +143,7 @@ const products = [
     category: "Chandails",
     gender: "Homme",
     price: 59.99,
-    image: "/images/men-sweater.jpg"
+    image: rootsMenSweater,
   },
   {
     id: 14,
@@ -123,7 +152,7 @@ const products = [
     category: "Hoodies",
     gender: "Homme",
     price: 69.99,
-    image: "/images/men-hoodie.jpg"
+    image: rootsHoodie,
   },
   {
     id: 15,
@@ -132,7 +161,7 @@ const products = [
     category: "Pantalons",
     gender: "Homme",
     price: 64.99,
-    image: "/images/men-pants.jpg"
+    image: kotnPants,
   },
   {
     id: 16,
@@ -141,7 +170,7 @@ const products = [
     category: "Jeans",
     gender: "Homme",
     price: 79.99,
-    image: "/images/men-jeans.jpg"
+    image: frankAndOakJeans,
   },
   {
     id: 17,
@@ -150,7 +179,7 @@ const products = [
     category: "Shorts",
     gender: "Homme",
     price: 44.99,
-    image: "/images/men-shorts.jpg"
+    image: tentreeShorts,
   },
   {
     id: 18,
@@ -159,7 +188,7 @@ const products = [
     category: "Vestes",
     gender: "Homme",
     price: 99.99,
-    image: "/images/men-jacket.jpg"
+    image: arcteryxJacket,
   },
   {
     id: 19,
@@ -168,7 +197,7 @@ const products = [
     category: "Manteaux",
     gender: "Homme",
     price: 159.99,
-    image: "/images/men-coat.jpg"
+    image: canadaGooseParka,
   },
   {
     id: 20,
@@ -177,8 +206,8 @@ const products = [
     category: "T-shirts",
     gender: "Homme",
     price: 34.99,
-    image: "/images/men-tshirt-graphic.jpg"
-  }
+    image: rootsGraphicTshirt,
+  },
 ];
 
 export default products;

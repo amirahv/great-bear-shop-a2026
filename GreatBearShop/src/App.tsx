@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import Clothing from './pages/Clothing'
 import Maple from './pages/Maple'
-import PageLivres from './pages/PageLivres'
-
 
 function App() {
   const [page, setPage] = useState('clothing')
@@ -30,14 +28,6 @@ function App() {
             >
               Sirop d'érable
             </button>
-
-            <button
-              className="btn btn-outline-light"
-              onClick={() => setPage('PageLivres')}
-            >
-              Livres
-            </button>
-
           </div>
         </div>
       </nav>
@@ -45,8 +35,6 @@ function App() {
       {/* Affichage de la page sélectionnée */}
       {page === 'clothing' && <Clothing />}
       {page === 'maple' && <Maple />}
-      {page === 'livres' && <PageLivres />}
-
     </>
   )
 }

@@ -1,51 +1,67 @@
-import { useState } from 'react'
-import products from '../data/products'
-import ProductCard from '../components/ProductCard'
+
+import { useState } from "react";
+import { Link } from "react-router";
+import products from "../data/products";
+import ProductCard from "../components/ProductCard";
+import "./Clothing.css";
 
 function Clothing() {
-  const [gender, setGender] = useState('Tous')
+  const [gender, setGender] = useState("Tous");
 
   const filteredProducts =
-    gender === 'Tous'
+    gender === "Tous"
       ? products
-      : products.filter((product) => product.gender === gender)
+      : products.filter((product) => product.gender === gender);
 
   return (
-    <div className="container py-5">
-      <h1 className="text-center mb-4">Vêtements</h1>
+    <div className="clothing-page">
 
-      <div className="d-flex justify-content-center gap-2 mb-5">
-        <button
-          className="btn btn-dark"
-          onClick={() => setGender('Tous')}
-        >
-          Tous
-        </button>
+      
+      <main className="container clothing-main">
 
-        <button
-          className="btn btn-outline-dark"
-          onClick={() => setGender('Femme')}
-        >
-          Femme
-        </button>
+        {/* TITRE */}
+        <div className="clothing-header">
+          <h1>Vêtements</h1>
+          <p>
+            Découvrez notre collection de vêtements
+            de marques canadiennes.
+          </p>
+        </div>
 
-        <button
-          className="btn btn-outline-dark"
-          onClick={() => setGender('Homme')}
-        >
-          Homme
-        </button>
-      </div>
+        {/* FILTRES */}
+        <div className="clothing-filters">
+          {["Tous", "Femme", "Homme"].map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={
+                gender === option
+                  ? "clothing-filter active"
+                  : "clothing-filter"
+              }
+              aria-pressed={gender === option}
+              onClick={() => setGender(option)}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
 
-      <div className="row g-4">
-        {filteredProducts.map((product) => (
-          <div className="col-12 col-sm-6 col-lg-3" key={product.id}>
-            <ProductCard product={product} />
-          </div>
-        ))}
-      </div>
+        {/* PRODUITS */}
+        <div className="row g-4">
+          {filteredProducts.map((product) => (
+            <div
+              className="col-12 col-sm-6 col-lg-4"
+              key={product.id}
+            >
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+
+      </main>
     </div>
-  )
+  );
 }
 
-export default Clothing
+export default Clothing;

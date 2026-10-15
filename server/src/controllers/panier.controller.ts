@@ -1,0 +1,469 @@
+import type { Request, Response } from "express";
+import { MongoServerError, ObjectId } from "mongodb";
+import { getDb } from "../db/mongo.js";
+import type { ArticlePanier, Panier } from "../models/panier.model.js";
+import type { Produit } from "../models/produit.model.js";
+
+type DonneesArticlePanier = {
+  produitId: string;
+  quantite: number;
+};
+
+/**
+ * Vérifie les données reçues pour un article du panier.
+ *
+ * @param valeur - Données à vérifier.
+ * @returns true si le produitId et la quantité sont valides.
+ * @author Amir
+ */
+function estDonneesArticlePanierValides(
+  valeur: unknown,
+): valeur is DonneesArticlePanier {
+  if (!valeur || typeof valeur !== "object" || Array.isArray(valeur)) {
+    return false;
+  }
+
+  const donnees = valeur as Record<string, unknown>;
+
+  return (
+    typeof donnees.produitId === "string" &&
+    ObjectId.isValid(donnees.produitId) &&
+    typeof donnees.quantite === "number" &&
+    Number.isSafeInteger(donnees.quantite) &&
+    donnees.quantite > 0
+  );
+}
+
+/**
+ * Récupère le panier de l'utilisateur connecté.
+ *
+ * L'identifiant doit être fourni par le middleware
+ * d'authentification dans res.locals.utilisateurId.
+ *
+ * @param _req - Requête Express.
+ * @param res - Réponse Express envoyée au client.
+ * @author Amir
+ */
+export async function obtenirPanier(
+  _req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const utilisateurId: unknown = res.locals.utilisateurId;
+
+    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+      res.status(401).json({
+        message: "Vous devez être connecté pour consulter votre panier.",
+      });
+      return;
+    }
+
+    const panier = await getDb()
+      .collection<Panier>("paniers")
+      .findOne({
+        utilisateurId: new ObjectId(utilisateurId),
+      });
+
+    if (!panier) {
+      res.status(404).json({
+        message: "Aucun panier trouvé pour cet utilisateur.",
+      });
+      return;
+    }
+
+    // pour afficher les détails des produits dans le panier au lieu de res.status(200).json(panier);
+
+    // Récupère les produits correspondant aux articles du panier.
+    const identifiantsProduits = panier.articles.map(
+      (article) => article.produitId,
+    );
+
+    const produits = await getDb()
+      .collection<Produit>("produits")
+      .find({
+        _id: { $in: identifiantsProduits },
+      })
+      .toArray();
+
+    // Prépare les informations nécessaires à l'affichage.
+    const articlesDetailles = panier.articles.map((article) => {
+      const produit = produits.find((produit) =>
+        produit._id.equals(article.produitId),
+      );
+
+      // Convertit le prix en centimes pour les calculs.
+      const prixEnCentimes = produit ? Math.round(produit.prix * 100) : null;
+
+      return {
+        produitId: article.produitId,
+        nom: produit?.nom ?? "Produit indisponible",
+        images: produit?.images ?? [],
+        quantite: article.quantite,
+
+        prixUnitaire: prixEnCentimes !== null ? prixEnCentimes / 100 : null,
+
+        totalLigne:
+          prixEnCentimes !== null
+            ? (prixEnCentimes * article.quantite) / 100
+            : null,
+
+        disponible:
+          produit !== undefined &&
+          produit.actif &&
+          article.quantite <= produit.stock,
+      };
+    });
+
+    // Calcule le sous-total lorsque tous les prix sont connus.
+    let sousTotalCentimes = 0;
+    let prixComplets = true;
+
+    for (const article of articlesDetailles) {
+      if (article.totalLigne === null) {
+        prixComplets = false;
+      } else {
+        sousTotalCentimes += Math.round(article.totalLigne * 100);
+      }
+    }
+
+    res.status(200).json({
+      ...panier,
+      articles: articlesDetailles,
+      sousTotal: prixComplets ? sousTotalCentimes / 100 : null,
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération du panier :", error);
+
+    res.status(500).json({
+      message: "Impossible de récupérer le panier.",
+    });
+  }
+}
+
+/**
+ * Ajoute un produit au panier de l'utilisateur connecté.
+ * Si le produit est déjà présent, augmente sa quantité.
+ * Crée le panier si nécessaire.
+ *
+ * @param req - Requête contenant produitId et quantite dans req.body.
+ * @param res - Réponse contenant l'identifiant utilisateur dans res.locals.
+ * @author Amir
+ */
+export async function ajouterArticlePanier(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const utilisateurId: unknown = res.locals.utilisateurId;
+
+    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+      res.status(401).json({
+        message: "Vous devez être connecté pour modifier votre panier.",
+      });
+      return;
+    }
+
+    const donnees: unknown = req.body;
+
+    if (!estDonneesArticlePanierValides(donnees)) {
+      res.status(400).json({
+        message: "Le produitId ou la quantité est invalide.",
+      });
+      return;
+    }
+
+    const produitId = new ObjectId(donnees.produitId);
+    const proprietaireId = new ObjectId(utilisateurId);
+
+    // Vérifie que le produit existe et qu'il est actif.
+    const produit = await getDb()
+      .collection<Produit>("produits")
+      .findOne({ _id: produitId, actif: true });
+
+    if (!produit) {
+      res.status(404).json({
+        message: "Produit introuvable ou indisponible.",
+      });
+      return;
+    }
+
+    const collectionPaniers = getDb().collection<Panier>("paniers");
+    const panier = await collectionPaniers.findOne({
+      utilisateurId: proprietaireId,
+    });
+
+    // Copie les articles pour conserver l'état initial du panier.
+    const articles: ArticlePanier[] = panier
+      ? panier.articles.map((article) => ({ ...article }))
+      : [];
+
+    const articleExistant = articles.find((article) =>
+      article.produitId.equals(produitId),
+    );
+
+    const quantiteFinale =
+      (articleExistant ? articleExistant.quantite : 0) + donnees.quantite;
+
+    // Vérifie la quantité totale, y compris celle déjà dans le panier.
+    if (
+      !Number.isSafeInteger(quantiteFinale) ||
+      quantiteFinale > produit.stock
+    ) {
+      res.status(400).json({
+        message: "La quantité demandée dépasse le stock disponible.",
+      });
+      return;
+    }
+
+    // Met à jour la quantité si l'article existe, sinon ajoute un nouvel article.
+    if (articleExistant) {
+      articleExistant.quantite = quantiteFinale;
+    } else {
+      articles.push({
+        produitId,
+        quantite: donnees.quantite,
+      });
+    }
+
+    const maintenant = new Date();
+
+    if (!panier) {
+      const nouveauPanier: Panier = {
+        utilisateurId: proprietaireId,
+        articles,
+        dateModification: maintenant,
+      };
+
+      const resultat = await collectionPaniers.insertOne(nouveauPanier);
+
+      // Retourne le panier nouvellement créé avec l'identifiant généré par MongoDB.
+      res.status(201).json({
+        ...nouveauPanier,
+        _id: resultat.insertedId,
+      });
+      return;
+    }
+
+    // Met à jour seulement si les articles n'ont pas changé entre-temps.
+    const resultat = await collectionPaniers.updateOne(
+      {
+        _id: panier._id,
+        articles: panier.articles,
+      },
+      {
+        $set: {
+          articles,
+          dateModification: maintenant,
+        },
+      },
+    );
+
+    /**
+     * Si aucun document n'a été mis à jour (resultat.matchedCount === 0), cela signifie que le panier a été modifié
+     * par une autre requête entre le moment où nous l'avons lu et celui où nous avons tenté de le mettre à jour.
+     * Dans ce cas, nous renvoyons un code 409 (Conflict) pour indiquer au client qu'il doit réessayer.
+     */
+    if (resultat.matchedCount === 0) {
+      res.status(409).json({
+        message: "Le panier a changé. Veuillez réessayer.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      ...panier,
+      articles,
+      dateModification: maintenant,
+    });
+  } catch (error) {
+    // Deux demandes peuvent tenter de créer le même panier simultanément.
+    if (error instanceof MongoServerError && error.code === 11000) {
+      res.status(409).json({
+        message: "Le panier vient d'être créé. Veuillez réessayer.",
+      });
+      return;
+    }
+
+    console.error("Erreur lors de l'ajout au panier :", error);
+
+    res.status(500).json({
+      message: "Impossible d'ajouter l'article au panier.",
+    });
+  }
+}
+
+/**
+ * Modifie la quantité d'un article déjà présent dans le panier.
+ *
+ * @param req - Requête contenant produitId dans les paramètres
+ * et la nouvelle quantité dans req.body.
+ * @param res - Réponse contenant l'identifiant utilisateur dans res.locals.
+ * @author Amir
+ */
+export async function modifierQuantiteArticle(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const utilisateurId: unknown = res.locals.utilisateurId;
+
+    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+      res.status(401).json({
+        message: "Vous devez être connecté pour modifier votre panier.",
+      });
+      return;
+    }
+
+    const produitId = req.params.produitId;
+
+    if (typeof produitId !== "string" || !ObjectId.isValid(produitId)) {
+      res.status(400).json({
+        message: "L'identifiant du produit est invalide.",
+      });
+      return;
+    }
+
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      res.status(400).json({
+        message: "Le corps de la requête doit être un objet JSON.",
+      });
+      return;
+    }
+
+    const quantite: unknown = req.body.quantite;
+
+    if (
+      typeof quantite !== "number" ||
+      !Number.isSafeInteger(quantite) ||
+      quantite <= 0
+    ) {
+      res.status(400).json({
+        message: "La quantité doit être un entier positif.",
+      });
+      return;
+    }
+
+    const identifiantProduit = new ObjectId(produitId);
+
+    const produit = await getDb().collection<Produit>("produits").findOne({
+      _id: identifiantProduit,
+      actif: true,
+    });
+
+    if (!produit) {
+      res.status(404).json({
+        message: "Produit introuvable ou indisponible.",
+      });
+      return;
+    }
+
+    if (quantite > produit.stock) {
+      res.status(400).json({
+        message: "La quantité demandée dépasse le stock disponible.",
+      });
+      return;
+    }
+
+    const resultat = await getDb()
+      .collection<Panier>("paniers")
+      .updateOne(
+        {
+          utilisateurId: new ObjectId(utilisateurId),
+          "articles.produitId": identifiantProduit,
+        },
+        {
+          $set: {
+            // Le $ représente l’article trouvé dans le tableau. MongoDB modifie sa quantité et conserve les autres articles.
+            "articles.$.quantite": quantite,
+            dateModification: new Date(),
+          },
+        },
+      );
+
+    // .matchedCount indique combien de documents ont été trouvés pour la mise à jour. Si c'est 0, l'article n'était pas dans le panier.
+    if (resultat.matchedCount === 0) {
+      res.status(404).json({
+        message: "Cet article n'est pas présent dans votre panier.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "La quantité de l'article a été modifiée.",
+    });
+  } catch (error) {
+    console.error("Erreur lors de la modification de la quantité :", error);
+
+    res.status(500).json({
+      message: "Impossible de modifier la quantité de l'article.",
+    });
+  }
+}
+
+/**
+ * Retire un article du panier de l'utilisateur connecté.
+ *
+ * @param req - Requête contenant produitId dans les paramètres.
+ * @param res - Réponse contenant l'identifiant utilisateur dans res.locals.
+ * @author Amir
+ */
+export async function retirerArticlePanier(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const utilisateurId: unknown = res.locals.utilisateurId;
+
+    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+      res.status(401).json({
+        message: "Vous devez être connecté pour modifier votre panier.",
+      });
+      return;
+    }
+
+    const produitId = req.params.produitId;
+
+    if (typeof produitId !== "string" || !ObjectId.isValid(produitId)) {
+      res.status(400).json({
+        message: "L'identifiant du produit est invalide.",
+      });
+      return;
+    }
+
+    const identifiantProduit = new ObjectId(produitId);
+
+    const resultat = await getDb()
+      .collection<Panier>("paniers")
+      .updateOne(
+        {
+          utilisateurId: new ObjectId(utilisateurId),
+          "articles.produitId": identifiantProduit,
+        },
+        {
+          $pull: {
+            articles: { produitId: identifiantProduit },
+          },
+          $set: {
+            dateModification: new Date(),
+          },
+        },
+      );
+
+    if (resultat.matchedCount === 0) {
+      res.status(404).json({
+        message: "Cet article n'est pas présent dans votre panier.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "L'article a été retiré du panier.",
+    });
+  } catch (error) {
+    console.error("Erreur lors du retrait de l'article :", error);
+
+    res.status(500).json({
+      message: "Impossible de retirer l'article du panier.",
+    });
+  }
+}
