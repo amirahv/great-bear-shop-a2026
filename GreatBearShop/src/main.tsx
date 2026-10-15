@@ -20,6 +20,9 @@ import Footer from "./components/Footer";
 import HomePage from "./HomePage";
 import Clothing from "./pages/Clothing";
 import Maple from "./pages/Maple";
+import PageLivres from './pages/PageLivres'
+import PageConnexion from './pages/PageConnexion'
+import PageInscription from './pages/PageInscription'
 
 // STRUCTURE COMMUNE À TOUTES LES PAGES
 function Layout() {
@@ -57,6 +60,18 @@ const router = createBrowserRouter([
       {
         path: "/maple",
         element: <Maple />,
+      },
+      {
+        path: "/livres",
+        element: <PageLivres />,
+      },
+      {
+        path: "/connexion",
+        element: <PageConnexion />,
+      },
+      {
+        path: "/inscription",
+        element: <PageInscription />,
       },
     ],
   },
