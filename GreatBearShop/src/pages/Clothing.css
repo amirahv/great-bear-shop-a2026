@@ -1,0 +1,65 @@
+/* Bouton retour accueil */
+
+.clothing-topbar {
+    width: 100%;
+    padding: 18px 28px 0;
+    text-align: left;
+  }
+  
+  .clothing-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    font-size: 13px;
+    color: #333;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    text-decoration: none;
+  }
+  
+  .clothing-back-btn:hover {
+    background: #212529;
+    color: white;
+  }
+  
+  /* Titre */
+  
+  .clothing-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .clothing-header h1 {
+    font-size: 48px;
+    font-weight: 700;
+    color: #212529;
+  }
+  
+  /* Filtres */
+  
+  .clothing-filters {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 45px;
+  }
+  
+  .clothing-filter {
+    padding: 10px 24px;
+    background: white;
+    color: #212529;
+    border: 1px solid #212529;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .clothing-filter.active {
+    background: #212529;
+    color: white;
+  }
+  
+  .clothing-filter:not(.active):hover {
+    background: #f2f2f2;
+  }
