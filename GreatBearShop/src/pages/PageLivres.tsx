@@ -1,11 +1,11 @@
 import livres from '../data/livres'
 import CarteLivre from '../components/CarteLivre'
-import Header from "../components/Header";
+
 
 function PageLivres() {
   return (
     <div className="container py-5">
-      <Header />
+   
       <h1 className="text-center mb-4 text-dark">Livres</h1>
 
       <div className="row g-4">

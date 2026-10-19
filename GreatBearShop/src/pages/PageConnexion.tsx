@@ -1,5 +1,5 @@
-import Header from "../components/Header";
 import ConnexionForm from "../components/ConnexionForm";
+
 
 function Connexion() {
     
@@ -11,8 +11,7 @@ function Connexion() {
         minHeight: "100vh",
       }}
     >
-        <Header />
-
+     
       <main className="container py-5">
         <h1 className="text-center mb-4 text-dark">
           Connexion
