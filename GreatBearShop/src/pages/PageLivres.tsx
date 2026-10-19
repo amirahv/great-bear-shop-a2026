@@ -1,6 +1,6 @@
 import livres from '../data/livres'
 import CarteLivre from '../components/CarteLivre'
-import Footer from "../components/Footer";
+
 
 function PageLivres() {
   return (
@@ -15,7 +15,6 @@ function PageLivres() {
           </div>
         ))}
       </div>
-      <Footer />
     </div>
   )
 }
