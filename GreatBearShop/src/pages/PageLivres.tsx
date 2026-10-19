@@ -1,11 +1,12 @@
 import livres from '../data/livres'
 import CarteLivre from '../components/CarteLivre'
-import Header from "../components/Header";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 function PageLivres() {
   return (
     <div className="container py-5">
-      <Header />
+      <Navbar />
       <h1 className="text-center mb-4 text-dark">Livres</h1>
 
       <div className="row g-4">
@@ -15,6 +16,7 @@ function PageLivres() {
           </div>
         ))}
       </div>
+      <Footer />
     </div>
   )
 }
