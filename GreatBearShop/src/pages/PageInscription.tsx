@@ -1,5 +1,6 @@
 import Header from "../components/Header";
 import InscriptionForm from "../components/InscriptionForm";
+import Footer from "../components/Footer";
 
 
 function Inscription() {
@@ -15,7 +16,7 @@ function Inscription() {
 
       <InscriptionForm />
 
-
+      <Footer />
     </div>
   );
 }
