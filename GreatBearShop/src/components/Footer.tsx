@@ -22,7 +22,7 @@ function Footer() {
           <Link to="/">Accueil</Link>
           <Link to="/clothing">Vêtements</Link>
           <Link to="/maple">Sirop d'érable</Link>
-          <Link to="/books">Livres</Link>
+          <Link to="/livres">Livres</Link>
           <Link to="/games">Jeux vidéo</Link>
         </div>
 
