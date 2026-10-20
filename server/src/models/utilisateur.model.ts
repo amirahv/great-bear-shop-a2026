@@ -3,6 +3,8 @@ import { UtilisateurRole } from "../types/utilisateur-role.type.js";
 import { Adresse } from "../types/adresse.type.js";
 
 /**
+ * Ce modele represente un utilisateur
+ *
  * @author Martin Ore Rodriguez
  */
 

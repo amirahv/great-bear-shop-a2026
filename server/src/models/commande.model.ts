@@ -4,6 +4,8 @@ import { Adresse } from "../types/adresse.type.js";
 import { ItemAchat } from "./itemAchat.model.js";
 
 /**
+ * Ce modele represente une commande passe par un utilisateur
+ *
  * @author Martin Ore Rodriguez
  */
 

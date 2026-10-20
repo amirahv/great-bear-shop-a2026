@@ -5,6 +5,8 @@ import { ItemAchat } from "../models/itemAchat.model.js";
 import { Produit } from "../models/produit.model.js";
 import { Commande } from "../models/commande.model.js";
 
+// TODO : adapter tout le code, pour lire a partir de la collection Panier vers Commande
+
 /**
  * Developpement du controlleur pour la collection "commandes" de la base de données "GreatBearShop"
  *
