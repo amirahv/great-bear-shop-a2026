@@ -1,0 +1,158 @@
+import { useState } from "react";
+import { Link } from "react-router";
+
+function InscriptionForm() {
+  const [nom, setNom] = useState("");
+  const [prenom, setPrenom] = useState("");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [creditCard, setCreditCard] = useState("");
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      alert("Les mots de passe ne correspondent pas.");
+      return;
+    }
+
+    console.log("Nom :", nom);
+    console.log("Prénom :", prenom);
+    console.log("Email :", email);
+    console.log("Nom d'utilisateur :", username);
+    console.log("Mot de passe :", password);
+  };
+
+  return (
+    <div className="container mt-5">
+      <div className="row justify-content-center">
+        <div className="col-md-8 col-lg-6">
+          <div className="card shadow">
+            <div className="card-body">
+              <h2 className="text-center mb-4 text-dark">
+                Créer un compte
+              </h2>
+
+              <form onSubmit={handleSubmit}>
+                <div className="row">
+                  <div className="mb-3">
+                    <label htmlFor="prenom" className="form-label fw-bold">
+                      Prénom
+                    </label>
+
+                    <input
+                      type="text"
+                      id="prenom"
+                      className="form-control"
+                      value={prenom}
+                      onChange={(e) => setPrenom(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <label htmlFor="nom" className="form-label fw-bold">
+                      Nom
+                    </label>
+
+                    <input
+                      type="text"
+                      id="nom"
+                      className="form-control"
+                      value={nom}
+                      onChange={(e) => setNom(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label fw-bold">
+                    Adresse courriel
+                  </label>
+
+                  <input
+                    type="email"
+                    id="email"
+                    className="form-control"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="username" className="form-label fw-bold">
+                    Nom d'utilisateur
+                  </label>
+
+                  <input
+                    type="text"
+                    id="username"
+                    className="form-control"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="password" className="form-label fw-bold">
+                    Mot de passe
+                  </label>
+
+                  <input
+                    type="password"
+                    id="password"
+                    className="form-control"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    minLength={6}
+                    required
+                  />
+
+                  <div className="form-text">
+                    Le mot de passe doit contenir au moins 6 caractères.
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="confirmPassword" className="form-label fw-bold">
+                    Confirmer le mot de passe
+                  </label>
+
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    className="form-control"
+                    style={{ fontWeight: "bold" }}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+
+
+                <button type="submit" className="btn btn-primary w-100">
+                  S'inscrire
+                </button>
+              </form>
+
+              <p className="text-center mt-3 mb-0">
+                Vous avez déjà un compte ?{" "}
+                <Link to="/connexion" className="text-primary">
+            Se Connecter
+          </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default InscriptionForm;
+

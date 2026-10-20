@@ -1,8 +1,9 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import { connectToMongo } from "./db/mongo.js";
+import { connectToMongo, getDb } from "./db/mongo.js";
 import produitRouter from "./routes/produit.routes.js";
+import panierRouter from "./routes/panier.routes.js";
 import utilisateurRouter from "./routes/utilisateur.route.js";
 
 dotenv.config();
@@ -24,6 +25,13 @@ async function demarrerServeur(): Promise<void> {
     // Connexion à MongoDB avant de démarrer le serveur.
     await connectToMongo(mongodbUri);
 
+    // Empêche la création de plusieurs paniers pour le même utilisateur.
+    await getDb()
+      .collection("paniers")
+      // Crée un index unique sur le champ 'utilisateurId' pour empêcher la création de plusieurs paniers pour le même utilisateur.
+      // {utilisateurId: 1} signifie que l'index est créé sur le champ 'utilisateurId' dans l'ordre croissant.
+      .createIndex({ utilisateurId: 1 }, { unique: true });
+
     const app = express();
 
     // Autorise les requêtes provenant du frontend.
@@ -32,8 +40,9 @@ async function demarrerServeur(): Promise<void> {
     // Permet à Express de recevoir des données JSON.
     app.use(express.json());
 
-    // Toutes les routes définies dans produitRouter commenceront par /api/produits.
+    // Configure les routes pour les produits et le panier.
     app.use("/api/produits", produitRouter);
+    app.use("/api/panier", panierRouter);
 
     // Toutes les routes definies dans utilisateurRouter commenceront par /api/utilisateurs
     app.use("/api/utilisateurs", utilisateurRouter);
