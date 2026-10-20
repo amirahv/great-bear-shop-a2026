@@ -6,6 +6,9 @@ import { getDb } from "../db/mongo.js";
 import bcrypt from "bcrypt";
 import { UtilisateurRole } from "../types/utilisateur-role.type.js";
 
+// TODO : revoir le code avec Amir pour s'assurer de la structure utilisateur-panier!!!!!!
+// TODO : actualiser le code pour inclure le panier
+
 /**
  * Developpement du controller pour la collection "utilisateur" dans "GreatBearShop"
  *
@@ -105,6 +108,7 @@ export async function ajouterUtilisateurClient(
       NOMBRE_SALT_ROUNDS,
     );
 
+    // TODO : a revoir avec Amir
     const nouvelUtilisateur: Omit<Utilisateur, "_id"> = {
       nom: (nom as string).trim(),
       prenom: (prenom as string).trim(),
@@ -127,7 +131,10 @@ export async function ajouterUtilisateurClient(
       ...utilisateurPublic,
     });
   } catch (error) {
-    console.error("Erreur lors de la creation de l'utilsiateur: ", error);
+    console.error(
+      `[${new Date().toISOString()}] ajouterUtilisateurClient() ->`,
+      error,
+    );
 
     res.status(500).json({
       message: "Impossible de creer l'utilisateur",
@@ -185,6 +192,7 @@ export async function getTousUtilisateurs(
  * @param req id de l'utilisateur a recuperer dans req.params.id
  * @param res l'utilisateur trouve dans la collection "utilisateurs" sans son mot de passe ou un message d'erreur si l'utilisateur n'est pas trouve
  * @returns l'utilisateur trouve ou un message d'erreur si l'utilisateur n'existe pas
+ *
  * @author Martin Ore Rodriguez
  */
 export async function getUtilisateurParId(
@@ -241,6 +249,8 @@ export async function getUtilisateurParId(
  * @param req courriel de l'utilisateur a recuperer dans req.body.courriel
  * @param res l'utilisateur trouve dans la collection "utilisateurs" sans son mot de passe ou un message d'erreur si l'utilisateur n'est pas trouve
  * @returns l'utilisateur trouve ou un message d'erreur si l'utilisateur n'existe pas
+ *
+ * @author Martin Ore Rodriguez
  */
 export async function getUtilisateurParCourriel(
   req: Request,
@@ -300,6 +310,8 @@ export async function getUtilisateurParCourriel(
  * @param req
  * @param res
  * @returns
+ *
+ * @author Martin Ore Rodriguez
  */
 export async function updateUtilisateurParId(
   req: Request,
@@ -441,6 +453,7 @@ export async function updateUtilisateurParId(
  * @param req id de l'utilisateur a supprimer dans req.params.id
  * @param res message de confirmation de suppression ou un message d'erreur si l'utilisateur n'est pas trouve
  * @returns confirmation ou message d'erreur si l'utilisateur n'existe pas
+ *
  * @author Martin Ore Rodriguez
  */
 export async function deleteUtilisateurParId(

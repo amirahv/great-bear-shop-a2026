@@ -25,18 +25,21 @@ utilisateurRouter.post("/ajouter", ajouterUtilisateurClient);
 utilisateurRouter.get("/lister", getTousUtilisateurs);
 
 /**
- * GET /api/utilisateurs/chercher/:id
+ * GET /api/utilisateurs/chercher/identifiant/:id
  *
  * Retourne un utilisateur spécifique trouvé par son identifiant MongoDB sans son mot de passe
  */
-utilisateurRouter.get("/chercher/:id", getUtilisateurParId);
+utilisateurRouter.get("/chercher/identifiant/:id", getUtilisateurParId);
 
 /**
- * GET /api/utilisateurs/chercher/courriel
+ * GET /api/utilisateurs/chercher/courriel/:courriel
  *
  * Retourne un utilisateur spécifique trouvé par son courriel dans la collection "utilisateurs" sans son mot de passe
  */
-utilisateurRouter.get("/chercher/:courriel", getUtilisateurParCourriel);
+utilisateurRouter.get(
+  "/chercher/courriel/:courriel",
+  getUtilisateurParCourriel,
+);
 
 /**
  * PUT /api/utilisateurs/actualiser/:id
