@@ -6,7 +6,6 @@ import { getDb } from "../db/mongo.js";
 import bcrypt from "bcrypt";
 import { UtilisateurRole } from "../types/utilisateur-role.type.js";
 
-// TODO : revoir le code avec Amir pour s'assurer de la structure utilisateur-panier!!!!!!
 // TODO : actualiser le code pour inclure le panier
 
 /**

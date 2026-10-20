@@ -3,6 +3,10 @@ import { StatutCommande } from "../types/statutCommande.type.js";
 import { Adresse } from "../types/adresse.type.js";
 import { ItemAchat } from "./itemAchat.model.js";
 
+/**
+ * @author Martin Ore Rodriguez
+ */
+
 export interface Commande {
   _id?: ObjectId;
   utilisateurId: ObjectId;
