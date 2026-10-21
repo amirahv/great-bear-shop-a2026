@@ -5,6 +5,7 @@ import { connectToMongo, getDb } from "./db/mongo.js";
 import produitRouter from "./routes/produit.routes.js";
 import panierRouter from "./routes/panier.routes.js";
 import utilisateurRouter from "./routes/utilisateur.route.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -35,16 +36,22 @@ async function demarrerServeur(): Promise<void> {
     const app = express();
 
     // Autorise les requêtes provenant du frontend.
-    app.use(cors());
+    app.use(
+      cors({
+        origin: process.env.FRONTEND_REACT,
+        credentials: true,
+      }),
+    );
+
+    // utilisation de cookie pour jwt
+    app.use(cookieParser());
 
     // Permet à Express de recevoir des données JSON.
     app.use(express.json());
 
-    // Configure les routes pour les produits et le panier.
+    // Definitions principales des routes
     app.use("/api/produits", produitRouter);
     app.use("/api/panier", panierRouter);
-
-    // Toutes les routes definies dans utilisateurRouter commenceront par /api/utilisateurs
     app.use("/api/utilisateurs", utilisateurRouter);
 
     // Route temporaire pour vérifier le fonctionnement du serveur.

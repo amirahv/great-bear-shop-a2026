@@ -5,6 +5,7 @@ import { Request, Response } from "express";
 import { getDb } from "../db/mongo.js";
 import bcrypt from "bcrypt";
 import { UtilisateurRole } from "../types/utilisateur-role.type.js";
+import { Collection } from "../types/colllectionNoms.type.js";
 
 // TODO : actualiser le code pour inclure le panier
 
@@ -86,7 +87,9 @@ export async function ajouterUtilisateurClient(
     const courrielNormalise = (courriel as string).trim().toLowerCase();
 
     // on reference la collection "utilisateurs"
-    const collectionUtilisateur = getDb().collection("utilisateurs");
+    const collectionUtilisateur = getDb().collection<Utilisateur>(
+      Collection.UTILISATEURS,
+    );
 
     // on s'assure qu'un utilisateur n'existe pas avec ce meme courriel
     const utilisateurExistant = await collectionUtilisateur.findOne({
@@ -116,7 +119,6 @@ export async function ajouterUtilisateurClient(
       role: UtilisateurRole.CLIENT, // par defaut, le role d'un nouvel utilisateur est "client"
       ...(adresse !== undefined ? { adresse: adresse as Adresse[] } : {}), // ternary operator
       dateCreation: new Date(),
-      // TODO : ajouter une partie pour la creation du panier
     };
 
     // ajout du nouvel utilisateur dans la collection "utilisateurs"
@@ -157,7 +159,7 @@ export async function getTousUtilisateurs(
   try {
     // on recupere la collection "utilisateurs" et on exclut le mot de passe dans la projection
     const collectionUtilisateur = await getDb()
-      .collection("utilisateurs")
+      .collection<Utilisateur>(Collection.UTILISATEURS)
       .find({}, { projection: PROJECTION_SANS_MOT_DE_PASSE })
       .toArray();
 
@@ -212,7 +214,7 @@ export async function getUtilisateurParId(
 
     // recuperation de l'utilisateur sans son mot de passe
     const utilisateur = await getDb()
-      .collection("utilisateurs")
+      .collection<Utilisateur>(Collection.UTILISATEURS)
       .findOne(
         { _id: new ObjectId(id.toString()) },
         { projection: PROJECTION_SANS_MOT_DE_PASSE },
@@ -273,7 +275,7 @@ export async function getUtilisateurParCourriel(
 
     // on cherchera l'utilisateur par son courriel dans la collection "utilisateurs" sans son mot de passe
     const utilisateur = await getDb()
-      .collection("utilisateurs")
+      .collection<Utilisateur>(Collection.UTILISATEURS)
       .findOne(
         { courriel: courriel.trim().toLowerCase() },
         { projection: PROJECTION_SANS_MOT_DE_PASSE },
@@ -399,7 +401,9 @@ export async function updateUtilisateurParId(
     }
 
     const utilisateur = req.params.id; // utilisateur a mettre a jour
-    const collectionUtilisateur = getDb().collection("utilisateurs");
+    const collectionUtilisateur = getDb().collection<Utilisateur>(
+      Collection.UTILISATEURS,
+    );
 
     if (updateFields.courriel) {
       const existant = await collectionUtilisateur.findOne({
@@ -470,7 +474,7 @@ export async function deleteUtilisateurParId(
     }
 
     const resultat = await getDb()
-      .collection("utilisateurs")
+      .collection<Utilisateur>(Collection.UTILISATEURS)
       .deleteOne({
         _id: new ObjectId(id.toString()),
       });
