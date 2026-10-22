@@ -13,7 +13,6 @@ function Inscription() {
 
       <InscriptionForm />
 
-
     </div>
   );
 }
