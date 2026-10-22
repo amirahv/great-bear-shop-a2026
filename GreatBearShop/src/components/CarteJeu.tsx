@@ -39,23 +39,24 @@ function CarteJeu({ jeu }: ProductCardProps) {
 
       <div className="card-body">
         <p className="text-muted mb-1">
-          {jeu.titre}
-        </p>
-
-        <h5 className="card-title">
-          {jeu.developpeur}
-        </h5>
-
-        <p className="card-text text-muted">
-          {jeu.editeur}
-        </p>
-
-        <p className="card-text text-muted">
           {jeu.console}
         </p>
 
+        <h5 className="card-title">
+          {jeu.titre}
+        </h5>
+
+        <p className="card-text text-muted">
+            Développeur: {jeu.developpeur}
+        </p>
+
+        <p className="card-text text-muted">
+            Éditeur: {jeu.editeur}
+        </p>
+
+        
         <p className="fw-bold">
-          {jeu.prix.toFixed(2)} $
+          Prix: {jeu.prix.toFixed(2)} $
         </p>
 
         <button className="btn btn-dark w-100">

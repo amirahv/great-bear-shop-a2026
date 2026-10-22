@@ -11,8 +11,10 @@ function Navbar() {
     { name: "ACCUEIL", path: "/" },
     { name: "VÊTEMENTS", path: "/clothing" },
     { name: "SIROP D'ÉRABLE", path: "/maple" },
-    { name: "LIVRES", path: "/books" },
+    { name: "LIVRES", path: "/livres" },
     { name: "JEUX VIDÉO", path: "/games" },
+    { name: "CONNEXION", path: "/connexion" },
+    { name: "INSCRIPTION", path: "/inscription" },
   ];
 
   return (
