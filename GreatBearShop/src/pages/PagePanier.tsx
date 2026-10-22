@@ -1,65 +1,145 @@
+import { useState } from "react";
 import panierTemporaire from "../data/panierTemporaire";
 
 function PagePanier() {
+  const [articles, setArticles] = useState(panierTemporaire);
+
+  function retirerArticle(produitId: string) {
+    setArticles((articlesActuels) =>
+      articlesActuels.filter((article) => article.produitId !== produitId),
+    );
+  }
+
+  function modifierQuantite(produitId: string, nouvelleQuantite: number) {
+    if (!Number.isSafeInteger(nouvelleQuantite) || nouvelleQuantite < 1) {
+      return;
+    }
+
+    setArticles((articlesActuels) =>
+      articlesActuels.map((article) => {
+        if (article.produitId !== produitId) {
+          return article;
+        }
+
+        const prixEnCentimes =
+          article.prixUnitaire !== null
+            ? Math.round(article.prixUnitaire * 100)
+            : null;
+
+        return {
+          ...article,
+          quantite: nouvelleQuantite,
+          totalLigne:
+            prixEnCentimes !== null
+              ? (prixEnCentimes * nouvelleQuantite) / 100
+              : null,
+        };
+      }),
+    );
+  }
+
   return (
-    <div className="container py-5">
-      <h1 className="mb-4">Mon panier</h1>
+    <div style={{ backgroundColor: "#BBBBBB", minHeight: "100vh" }}>
+      <div className="container py-5">
+        <h1 className="mb-4">Mon panier</h1>
 
-      {panierTemporaire.length === 0 ? (
-        <p>Votre panier est vide.</p>
-      ) : (
-        panierTemporaire.map((article) => (
-          <div className="card mb-3" key={article.produitId}>
-            <div className="card-body">
-              <div className="row align-items-center g-3">
-                <div className="col-12 col-md-2">
-                  {article.images.length > 0 ? (
-                    <img
-                      src={article.images[0]}
-                      alt={article.nom}
-                      className="img-fluid"
-                      style={{
-                        maxHeight: "150px",
-                        objectFit: "contain",
-                      }}
-                    />
-                  ) : (
-                    <span className="text-muted">Aucune image</span>
-                  )}
-                </div>
+        {articles.length === 0 ? (
+          <p>Votre panier est vide.</p>
+        ) : (
+          articles.map((article) => (
+            <div className="card mb-3" key={article.produitId}>
+              <div className="card-body">
+                <div className="row align-items-center g-3">
+                  <div className="col-12 col-md-2">
+                    {article.images.length > 0 ? (
+                      <img
+                        src={article.images[0]}
+                        alt={article.nom}
+                        className="img-fluid"
+                        style={{
+                          maxHeight: "150px",
+                          objectFit: "contain",
+                        }}
+                      />
+                    ) : (
+                      <span className="text-muted">Aucune image</span>
+                    )}
+                  </div>
 
-                <div className="col-12 col-md-6">
-                  <h2 className="h5">{article.nom}</h2>
+                  <div className="col-12 col-md-6">
+                    <h2 className="h5">{article.nom}</h2>
 
-                  <p>
-                    Prix unitaire :{" "}
-                    {article.prixUnitaire !== null
-                      ? `${article.prixUnitaire.toFixed(2)} $`
-                      : "Prix indisponible"}
-                  </p>
-
-                  <p className="mb-0">Quantité : {article.quantite}</p>
-
-                  {!article.disponible && (
-                    <p className="text-danger mt-2 mb-0">
-                      Article indisponible pour la quantité demandée.
+                    <p>
+                      Prix unitaire :{" "}
+                      {article.prixUnitaire !== null
+                        ? `${article.prixUnitaire.toFixed(2)} $`
+                        : "Prix indisponible"}
                     </p>
-                  )}
-                </div>
 
-                <div className="col-12 col-md-4 text-md-end">
-                  <p className="fw-bold mb-0">
-                    Sous-total :{" "}
-                    {article.totalLigne !== null
-                      ? `${article.totalLigne.toFixed(2)} $`
-                      : "Non calculable"}
-                  </p>
+                    <div className="d-flex align-items-center gap-2">
+                      <span>Quantité :</span>
+
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary btn-sm"
+                        aria-label={`Diminuer la quantité de ${article.nom}`}
+                        disabled={article.quantite <= 1}
+                        onClick={() =>
+                          modifierQuantite(
+                            article.produitId,
+                            article.quantite - 1,
+                          )
+                        }
+                      >
+                        −
+                      </button>
+
+                      <span>{article.quantite}</span>
+
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary btn-sm"
+                        aria-label={`Augmenter la quantité de ${article.nom}`}
+                        onClick={() =>
+                          modifierQuantite(
+                            article.produitId,
+                            article.quantite + 1,
+                          )
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger btn-sm mt-2"
+                      onClick={() => retirerArticle(article.produitId)}
+                    >
+                      Retirer
+                    </button>
+
+                    {!article.disponible && (
+                      <p className="text-danger mt-2 mb-0">
+                        Article indisponible pour la quantité demandée.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="col-12 col-md-4 text-md-end">
+                    <p className="fw-bold mb-0">
+                      Sous-total :{" "}
+                      {article.totalLigne !== null
+                        ? `${article.totalLigne.toFixed(2)} $`
+                        : "Non calculable"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }
