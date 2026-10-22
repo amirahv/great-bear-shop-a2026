@@ -23,6 +23,7 @@ import Maple from "./pages/Maple";
 import PageLivres from './pages/PageLivres'
 import PageConnexion from './pages/PageConnexion'
 import PageInscription from './pages/PageInscription'
+import Games from "./pages/Games";
 
 // STRUCTURE COMMUNE À TOUTES LES PAGES
 function Layout() {
@@ -72,6 +73,10 @@ const router = createBrowserRouter([
       {
         path: "/inscription",
         element: <PageInscription />,
+      },
+      {
+        path: "/games",
+        element: <Games />,
       },
     ],
   },
