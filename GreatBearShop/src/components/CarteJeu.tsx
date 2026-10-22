@@ -14,7 +14,7 @@ type ProductCardProps = {
 
 function CarteJeu({ jeu }: ProductCardProps) {
   return (
-    <div className="card h-100">
+    <div className="card h-100 d-flex flex-column">
 
       {/* IMAGE DU LIVRE */}
       <div
@@ -37,7 +37,7 @@ function CarteJeu({ jeu }: ProductCardProps) {
         />
       </div>
 
-      <div className="card-body">
+      <div className="card-body d-flex flex-column">
         <p className="text-muted mb-1">
           {jeu.console}
         </p>
@@ -59,7 +59,7 @@ function CarteJeu({ jeu }: ProductCardProps) {
           Prix: {jeu.prix.toFixed(2)} $
         </p>
 
-        <button className="btn btn-dark w-100">
+        <button className="btn btn-dark w-100 mt-auto">
           Ajouter au panier
         </button>
       </div>

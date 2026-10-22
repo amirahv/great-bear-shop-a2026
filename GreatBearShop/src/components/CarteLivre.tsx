@@ -15,7 +15,7 @@ type ProductCardProps = {
 
 function CarteLivre({ livre }: ProductCardProps) {
   return (
-    <div className="card h-100">
+    <div className="card h-100 d-flex flex-column">
 
       {/* IMAGE DU LIVRE */}
       <div
@@ -38,7 +38,7 @@ function CarteLivre({ livre }: ProductCardProps) {
         />
       </div>
 
-      <div className="card-body">
+      <div className="card-body d-flex flex-column">
         <p className="text-muted mb-1">
           {livre.auteur}
         </p>
@@ -63,7 +63,7 @@ function CarteLivre({ livre }: ProductCardProps) {
           Prix: {livre.prix.toFixed(2)} $
         </p>
 
-        <button className="btn btn-dark w-100">
+        <button className="btn btn-dark w-100 mt-auto">
           Ajouter au panier
         </button>
       </div>
