@@ -1,16 +1,42 @@
 import { useState } from "react";
 import panierTemporaire from "../data/panierTemporaire";
 
+/**
+ * Affiche les articles du panier et permet de modifier leurs quantités
+ * ou de les retirer.
+ *
+ * Le panier est initialisé avec des données temporaires.
+ * Les modifications restent en mémoire et sont perdues au rechargement.
+ *
+ * @author Amir
+ */
 function PagePanier() {
+  // Conserve les articles affichés et permet d'actualiser l'interface.
   const [articles, setArticles] = useState(panierTemporaire);
 
+  /**
+   * Retire un article du panier affiché.
+   *
+   * @param produitId - Identifiant du produit à retirer.
+   * @author Amir
+   */
   function retirerArticle(produitId: string) {
+    // Crée une nouvelle liste contenant tous les autres articles.
     setArticles((articlesActuels) =>
       articlesActuels.filter((article) => article.produitId !== produitId),
     );
   }
 
+  /**
+   * Modifie la quantité d'un article et recalcule son montant.
+   * La quantité doit être un entier positif.
+   *
+   * @param produitId - Identifiant du produit à modifier.
+   * @param nouvelleQuantite - Nouvelle quantité souhaitée.
+   * @author Amir
+   */
   function modifierQuantite(produitId: string, nouvelleQuantite: number) {
+    // Refuse les quantités invalides avant de modifier l'état.
     if (!Number.isSafeInteger(nouvelleQuantite) || nouvelleQuantite < 1) {
       return;
     }
@@ -21,12 +47,14 @@ function PagePanier() {
           return article;
         }
 
+        // Calcule en centimes pour limiter les erreurs d'arrondi monétaires.
         const prixEnCentimes =
           article.prixUnitaire !== null
             ? Math.round(article.prixUnitaire * 100)
             : null;
 
         return {
+          // Copie l'article et remplace sa quantité ainsi que son montant.
           ...article,
           quantite: nouvelleQuantite,
           totalLigne:
@@ -41,8 +69,9 @@ function PagePanier() {
   return (
     <div style={{ backgroundColor: "#BBBBBB", minHeight: "100vh" }}>
       <div className="container py-5">
-        <h1 className="mb-4">Mon panier</h1>
+        <h1 className="mb-4">Le panier</h1>
 
+        {/* Affiche un message si le panier est vide, sinon la liste des articles. */}
         {articles.length === 0 ? (
           <p>Votre panier est vide.</p>
         ) : (
