@@ -7,6 +7,13 @@ import {
   updateUtilisateurParId,
   deleteUtilisateurParId,
 } from "../controllers/utilisateur.controller.js";
+import { login } from "../controllers/authentication.controller.js";
+
+/**
+ * Definition des routes pour le controller des Utilisateurs
+ *
+ * @author Martin Ore Rodriguez
+ */
 
 const utilisateurRouter = Router();
 
@@ -54,5 +61,12 @@ utilisateurRouter.put("/actualiser/:id", updateUtilisateurParId);
  * Supprime un utilisateur spécifique trouvé par son identifiant MongoDB
  */
 utilisateurRouter.delete("/supprimer/:id", deleteUtilisateurParId);
+
+/**
+ * POST /api/utilisateurs/login
+ *
+ * Valide la concordance entre courriel et mot de passe. Si valide, renvoie le token
+ */
+utilisateurRouter.post("/login", login);
 
 export default utilisateurRouter;

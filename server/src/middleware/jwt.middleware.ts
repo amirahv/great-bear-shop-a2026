@@ -19,7 +19,7 @@ export async function authenticateToken(
   res: Response,
   next: NextFunction,
 ): Promise<void> {
-  const token = req.cookies.refresh;
+  const token = req.cookies.token;
 
   // verfication que le token est present dans la requete
   if (!token) {
@@ -36,9 +36,13 @@ export async function authenticateToken(
       process.env.JWT_SECRET as string,
     ) as MyTokenPayload;
 
+    // on recupere l'utilisateur sans son mot de passe
     const utilisateur = await getDb()
       .collection<Utilisateur>(Collection.UTILISATEURS)
-      .findOne({ _id: new ObjectId(decoded.id) });
+      .findOne(
+        { _id: new ObjectId(decoded.id) },
+        { projection: { motDePasseHash: 0 } },
+      );
 
     if (!utilisateur) {
       res.status(401).json({

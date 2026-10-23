@@ -6,8 +6,11 @@ import { getDb } from "../db/mongo.js";
 import bcrypt from "bcrypt";
 import { UtilisateurRole } from "../types/utilisateur-role.type.js";
 import { Collection } from "../types/colllectionNoms.type.js";
-
-// TODO : actualiser le code pour inclure le panier
+import {
+  authentifierUtilisateur,
+  creerToken,
+} from "../services/authentication.service.js";
+import { envoyerCookieToken } from "../utils/cookie.util.js";
 
 /**
  * Developpement du controller pour la collection "utilisateur" dans "GreatBearShop"
@@ -110,7 +113,6 @@ export async function ajouterUtilisateurClient(
       NOMBRE_SALT_ROUNDS,
     );
 
-    // TODO : a revoir avec Amir
     const nouvelUtilisateur: Omit<Utilisateur, "_id"> = {
       nom: (nom as string).trim(),
       prenom: (prenom as string).trim(),
@@ -126,6 +128,14 @@ export async function ajouterUtilisateurClient(
 
     // _hash est le mot de passe hashé, on ne veut pas le retourner dans la reponse de l'API
     const { motDePasseHash: _hash, ...utilisateurPublic } = nouvelUtilisateur;
+
+    const token = creerToken({
+      ...nouvelUtilisateur,
+      _id: resultat.insertedId,
+    });
+
+    // association du token au cookie de res: Response
+    envoyerCookieToken(res, token);
 
     res.status(201).json({
       _id: resultat.insertedId, // retour du _id insere dans la collection
@@ -184,7 +194,6 @@ export async function getTousUtilisateurs(
   }
 }
 
-// READ un utilisateur specifique par son Id MongoDB
 /**
  * READ
  *
