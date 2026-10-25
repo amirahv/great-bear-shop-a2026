@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./PagePanier.css";
 import panierTemporaire from "../data/panierTemporaire";
 
 /**
@@ -67,7 +68,7 @@ function PagePanier() {
   }
 
   return (
-    <div style={{ backgroundColor: "#BBBBBB", minHeight: "100vh" }}>
+    <div className="page-panier">
       <div className="container py-5">
         <h1 className="mb-4">Le panier</h1>
 
@@ -105,12 +106,13 @@ function PagePanier() {
                         : "Prix indisponible"}
                     </p>
 
+                    {/* Quantité et boutons de modification du panier. */}
                     <div className="d-flex align-items-center gap-2">
                       <span>Quantité :</span>
 
                       <button
                         type="button"
-                        className="btn btn-outline-secondary btn-sm"
+                        className="btn bouton-panier bouton-quantite"
                         aria-label={`Diminuer la quantité de ${article.nom}`}
                         disabled={article.quantite <= 1}
                         onClick={() =>
@@ -120,14 +122,16 @@ function PagePanier() {
                           )
                         }
                       >
-                        −
+                        <span className="symbole-quantite" aria-hidden="true">
+                          −
+                        </span>
                       </button>
 
                       <span>{article.quantite}</span>
 
                       <button
                         type="button"
-                        className="btn btn-outline-secondary btn-sm"
+                        className="btn bouton-panier bouton-quantite"
                         aria-label={`Augmenter la quantité de ${article.nom}`}
                         onClick={() =>
                           modifierQuantite(
@@ -136,17 +140,19 @@ function PagePanier() {
                           )
                         }
                       >
-                        +
+                        <span className="symbole-quantite" aria-hidden="true">
+                          +
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn bouton-panier bouton-retirer"
+                        onClick={() => retirerArticle(article.produitId)}
+                      >
+                        Retirer
                       </button>
                     </div>
-
-                    <button
-                      type="button"
-                      className="btn btn-outline-danger btn-sm mt-2"
-                      onClick={() => retirerArticle(article.produitId)}
-                    >
-                      Retirer
-                    </button>
 
                     {!article.disponible && (
                       <p className="text-danger mt-2 mb-0">

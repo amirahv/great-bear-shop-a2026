@@ -1,0 +1,56 @@
+/* Apparence commune aux trois boutons. */
+.btn.bouton-panier {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  height: 26px;
+  padding: 0;
+  border-radius: 6px;
+  line-height: 1;
+
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+/* Boutons + et −. */
+.btn.bouton-quantite {
+  width: 26px;
+  font-size: 22px;
+  background-color: #BBBBBB;
+  border-color: #BBBBBB;
+  color: #212529;
+}
+
+/* Effet au survol des boutons actifs. */
+.btn.bouton-quantite:hover:not(:disabled) {
+  background-color: #999999;
+  border-color: #999999;
+}
+
+/* Ajustement visuel des symboles + et −. */
+.bouton-quantite .symbole-quantite {
+  transform: translateY(-2px);
+}
+
+/* Bouton Retirer : même hauteur, mais plus large. */
+.btn.bouton-retirer {
+  width: 70px;
+  font-size: 14px;
+  background-color: transparent;
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+/* Fond rouge au survol. */
+.btn.bouton-retirer:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+/* Fond gris de la page panier. */
+.page-panier {
+  background-color: #BBBBBB;
+  min-height: 100vh;
+}
