@@ -7,13 +7,16 @@ import { Utilisateur } from "../models/utilisateur.model.js";
 import { Collection } from "../types/colllectionNoms.type.js";
 
 /**
+ * Fonction qui va valider que l'id de l'utilisateur hash dans le jwt correspond bel et bien a un utilisateur de la collection
+ *  Rappel reponse HTTPS :
+ *    -> 401 : unauthorized
  *
- * Rappel :
- *  -> 401 : Unauthorized
+ * @param req associe l'utilisateur identifie au Request
+ * @param res message d'erreur si token non authentifie
+ * @param next continuite de l'appel de l'API
  *
  * @author Martin Ore Rodriguez
  */
-
 export async function authenticateToken(
   req: Request,
   res: Response,

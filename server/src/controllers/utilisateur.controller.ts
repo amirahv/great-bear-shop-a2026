@@ -6,10 +6,7 @@ import { getDb } from "../db/mongo.js";
 import bcrypt from "bcrypt";
 import { UtilisateurRole } from "../types/utilisateur-role.type.js";
 import { Collection } from "../types/colllectionNoms.type.js";
-import {
-  authentifierUtilisateur,
-  creerToken,
-} from "../services/authentication.service.js";
+import { creerToken } from "../services/authentication.service.js";
 import { envoyerCookieToken } from "../utils/cookie.util.js";
 
 /**
