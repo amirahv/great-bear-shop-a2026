@@ -19,13 +19,13 @@
   font-size: 22px;
   background-color: #BBBBBB;
   border-color: #BBBBBB;
-  color: #212529;
+  color: #ffffff;
 }
 
 /* Effet au survol des boutons actifs. */
 .btn.bouton-quantite:hover:not(:disabled) {
-  background-color: #999999;
-  border-color: #999999;
+  background-color: #000000;
+  border-color: #000000;
 }
 
 /* Ajustement visuel des symboles + et −. */
@@ -33,19 +33,19 @@
   transform: translateY(-2px);
 }
 
-/* Bouton Retirer : même hauteur, mais plus large. */
+/* Bouton Retirer */
 .btn.bouton-retirer {
   width: 70px;
   font-size: 14px;
   background-color: transparent;
-  border-color: #dc3545;
-  color: #dc3545;
+  border-color: #999999;
+  color: #999999;
 }
 
-/* Fond rouge au survol. */
+/* Bouton Retirer au survol. */
 .btn.bouton-retirer:hover {
-  background-color: #dc3545;
-  border-color: #dc3545;
+  background-color: #000000;
+  border-color: #000000;
   color: white;
 }
 
