@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import "./Navbar.css";
@@ -13,6 +12,7 @@ function Navbar() {
     { name: "SIROP D'ÉRABLE", path: "/maple" },
     { name: "LIVRES", path: "/livres" },
     { name: "JEUX VIDÉO", path: "/games" },
+    { name: "PANIER", path: "/panier" },
     { name: "CONNEXION", path: "/connexion" },
     { name: "INSCRIPTION", path: "/inscription" },
   ];
@@ -31,11 +31,7 @@ function Navbar() {
           {isOpen ? "✕" : "☰"}
         </button>
 
-        <Link
-          to="/"
-          className="shop-logo"
-          onClick={() => setIsOpen(false)}
-        >
+        <Link to="/" className="shop-logo" onClick={() => setIsOpen(false)}>
           THE GREAT BEAR SHOP
         </Link>
       </header>
