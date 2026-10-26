@@ -67,6 +67,19 @@ function PagePanier() {
     );
   }
 
+  // Additionne les montants des articles en centimes.
+  // Si un montant manque, le sous-total ne peut pas être calculé.
+  let sousTotalEnCentimes: number | null = 0;
+
+  for (const article of articles) {
+    if (article.totalLigne === null) {
+      sousTotalEnCentimes = null;
+      break;
+    }
+
+    sousTotalEnCentimes += Math.round(article.totalLigne * 100);
+  }
+
   return (
     <div className="page-panier">
       <div className="container py-5">
@@ -173,6 +186,21 @@ function PagePanier() {
               </div>
             </div>
           ))
+        )}
+        {/* Sous-total global, affiché uniquement si le panier contient des articles. */}
+        {articles.length > 0 && (
+          <div className="border-top pt-3 mt-4 text-end">
+            <p className="fs-5 fw-bold mb-1">
+              Sous-total du panier :{" "}
+              {sousTotalEnCentimes !== null
+                ? `${(sousTotalEnCentimes / 100).toFixed(2)} $`
+                : "Non calculable"}
+            </p>
+
+            <p className="text-muted mb-0">
+              Avant taxes et frais de livraison.
+            </p>
+          </div>
         )}
       </div>
     </div>
