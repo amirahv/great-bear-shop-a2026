@@ -15,10 +15,11 @@ import Footer from "./components/Footer";
 import HomePage from "./HomePage";
 import Clothing from "./pages/Clothing";
 import Maple from "./pages/Maple";
-import PageLivres from "./pages/PageLivres";
-import PageConnexion from "./pages/PageConnexion";
 import PageInscription from "./pages/PageInscription";
 import PagePanier from "./pages/PagePanier";
+import PageLivres from './pages/PageLivres'
+import PageConnexion from './pages/PageConnexion'
+import Games from "./pages/Games";
 
 // STRUCTURE COMMUNE À TOUTES LES PAGES
 function Layout() {
@@ -70,6 +71,10 @@ const router = createBrowserRouter([
       {
         path: "/panier",
         element: <PagePanier />,
+      },
+      {
+        path: "/games",
+        element: <Games />,
       },
     ],
   },
