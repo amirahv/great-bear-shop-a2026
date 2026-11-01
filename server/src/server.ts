@@ -5,7 +5,9 @@ import { connectToMongo, getDb } from "./db/mongo.js";
 import produitRouter from "./routes/produit.routes.js";
 import panierRouter from "./routes/panier.routes.js";
 import utilisateurRouter from "./routes/utilisateur.route.js";
+import commandeRouter from "./routes/commande.route.js";
 import cookieParser from "cookie-parser";
+import { Collection } from "./types/colllectionNoms.type.js";
 
 dotenv.config();
 
@@ -28,7 +30,7 @@ async function demarrerServeur(): Promise<void> {
 
     // Empêche la création de plusieurs paniers pour le même utilisateur.
     await getDb()
-      .collection("paniers")
+      .collection(Collection.PANIERS)
       // Crée un index unique sur le champ 'utilisateurId' pour empêcher la création de plusieurs paniers pour le même utilisateur.
       // {utilisateurId: 1} signifie que l'index est créé sur le champ 'utilisateurId' dans l'ordre croissant.
       .createIndex({ utilisateurId: 1 }, { unique: true });
@@ -53,6 +55,7 @@ async function demarrerServeur(): Promise<void> {
     app.use("/api/produits", produitRouter);
     app.use("/api/panier", panierRouter);
     app.use("/api/utilisateurs", utilisateurRouter);
+    app.use("/api/commandes", commandeRouter);
 
     // Route temporaire pour vérifier le fonctionnement du serveur.
     app.get("/", (_req, res) => {

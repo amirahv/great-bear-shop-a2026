@@ -1,70 +1,160 @@
-import { ObjectId } from "mongodb";
+import { ObjectId, UnorderedBulkOperation } from "mongodb";
 import { getDb } from "../db/mongo.js";
 import { Request, Response } from "express";
 import { ItemAchat } from "../models/itemAchat.model.js";
 import { Produit } from "../models/produit.model.js";
 import { Commande } from "../models/commande.model.js";
-
-// TODO : adapter tout le code, pour lire a partir de la collection Panier vers Commande
+import { Collection } from "../types/colllectionNoms.type.js";
+import { StatutCommande } from "../types/statutCommande.type.js";
+import { Panier } from "../models/panier.model.js";
+import { Adresse } from "../types/adresse.type.js";
 
 /**
  * Developpement du controlleur pour la collection "commandes" de la base de données "GreatBearShop"
  *
  * Fonctions:
- * Create : creerCommande()
- * Read :
- * Update :
- * Delete :
+ *  Create : creerCommande()
+ *  Read : obternirCommandeParUtilisateur(), obtenirToutesCommandes()
+ *  Update : actualiserStatutCommande()
+ *  Delete : supprimerCommande()
+ *
+ * Note : l'inventaire n'est pas modifie dans ce controller, les fonctions qui actualise l'inventaire seront fait ulterieurment
  *
  * @author Martin Ore Rodriguez
  */
 
-// CREATE
-// creation d'une commande a partir du panier d'un utilisateur
+const TAXES_QUEBEC = 0.14975;
+
+// permet d'arrondir le format a 2 decimales
+const arrondir = (montant: number): number => Math.round(montant * 100) / 100;
+
+/**
+ * API qui permet de creer une nouvelle commande a partir d'un panier d'un utilisateur
+ *
+ * @param req token qui contient une version Utilisateur public
+ * @param res commande cree ou messages d'erreurs
+ * @returns commande cree
+ *
+ * @author Martin Ore Rodriguez
+ */
 export async function creerCommande(
   req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const utilisateurId = req.params.utilisateurId;
+    const utilisateurId = req.user?._id;
 
     // validation de l'id en parametre
-    if (!ObjectId.isValid(utilisateurId.toString())) {
+    if (!utilisateurId) {
       res.status(400).json({
-        message: "L'identifiant de l'utilisateur n'est pas valide",
+        message: "Utilisateur non authentifié",
       });
       return;
     }
 
-    // on recupere le panier de l'utilisateur desire
-    const utilisateur = await getDb()
-      .collection("utilisateurs")
-      .findOne(
-        { _id: new ObjectId(utilisateurId.toString()) },
-        { projection: { panier: 1 } },
-      );
+    // TODO : l'adresse de livraison devrait etre envoye par le body addresse { ... }?
 
-    // validation que le panier de l'utilisateur existe dans la base de donnees
-    if (!utilisateur || utilisateur.panier.lenght() === 0) {
+    // on recupere le panier pour un utilisateur
+    const panier = await getDb()
+      .collection<Panier>(Collection.PANIERS)
+      .findOne({ _id: utilisateurId });
+
+    if (!panier) {
       res.status(404).json({
-        message: "Utilisateur ou panier introuvable",
+        message: "Panier introuvable",
       });
+
       return;
     }
 
-    const collectionProduit = getDb().collection<Produit>("produits");
+    if (panier.articles.length === 0) {
+      res.status(400).json({
+        message: "Le panier est vide",
+      });
 
-    // TODO : revoir comment un item panier a ete developpe par Amir
-    const achat = await Promise.all(
-      utilisateur.panier.map(async (item: ItemAchat) => {
-        const prix = await collectionProduit.findOne(
-          { _id: item.produitId },
-          { projection: { prix: 1 } },
-        );
-      }),
+      return;
+    }
+
+    // on recupere les id de chaque produit dans le panier
+    const produitIds = panier.articles.map((article) => article.produitId);
+
+    // on recupere le prix de chacun des produits dans le panier
+    const produits = await getDb()
+      .collection<Produit>(Collection.PRODUITS)
+      .find({ _id: { $in: produitIds } }, { projection: { prix: 1 } })
+      .toArray();
+
+    // on cree un dictionnaire <produitId, prix>
+    const prixParProduit = new Map<string, number>(
+      produits.map((produit) => [produit._id.toString(), produit.prix]),
     );
 
-    // methode en standby!!!! Pour continuer, il faut parler avec Amir
+    // attribut d'une commande, contient tous les elements achete
+    const achat = [];
+
+    for (const article of panier.articles) {
+      // on recupere le prix du produit se trouvant dans le panier a partir du dictionnaire prixParProduit<>
+      const prix = prixParProduit.get(article.produitId.toString());
+
+      if (prix === undefined) {
+        res.status(404).json({
+          message: `Produit introuvable: ${article.produitId.toString()}`,
+        });
+
+        return;
+      }
+
+      // on construit un objet contenant les informations pour le type itemAchat dans le modele commande
+      achat.push({
+        produitId: article.produitId,
+        quantite: article.quantite,
+        prix,
+      });
+    }
+
+    // Array.reduce() =comme= iter.sum()
+    const prixTotalAvantTaxes = arrondir(
+      achat.reduce((total, item) => total + item.prix * item.quantite, 0),
+    );
+
+    const prixTotalApresTaxes = arrondir(
+      prixTotalAvantTaxes * (1 + TAXES_QUEBEC),
+    );
+
+    // nouvelle commande construite
+    const nouvelleCommande = {
+      utilisateurId,
+      achat,
+      destination, // a revoir
+      statut: StatutCommande.RECU,
+      prixTotalAvantTaxes,
+      prixTotalApresTaxes,
+      dateAchat: new Date(),
+      dateModification: new Date(),
+    };
+
+    // nouvelle commande ajoutee a la base de donnee
+    const resultat = await getDb()
+      .collection<Commande>(Collection.COMMANDES)
+      .insertOne(nouvelleCommande);
+
+    // on vide le panier d'un utilisateur apres avoir confirme l'achat
+    await getDb()
+      .collection<Panier>(Collection.PANIERS)
+      .updateOne(
+        { _id: panier._id },
+        {
+          $set: {
+            articles: [],
+            dateModification: new Date(),
+          },
+        },
+      );
+
+    res.status(200).json({
+      message: "Commande cree avec succes",
+      commande: { ...nouvelleCommande, _id: resultat.insertedId },
+    });
   } catch (error) {
     console.error(`[${new Date().toISOString()}] creerCommande() ->`, error);
 
@@ -90,24 +180,24 @@ export async function obtenirCommandeParUtilisateurId(
   res: Response,
 ): Promise<void> {
   try {
-    const utilisateurId = req.params.id;
+    const utilisateurId = req.user?._id;
 
-    if (!ObjectId.isValid(utilisateurId.toString())) {
+    if (!utilisateurId) {
       res.status(400).json({
-        message: "Identifiant non valide",
+        message: "Utilisateur non authentifie",
       });
 
       return;
     }
 
     const commande = await getDb()
-      .collection<Commande>("commandes")
-      .find({ _id: new ObjectId(utilisateurId.toString()) })
+      .collection<Commande>(Collection.COMMANDES)
+      .find({ _id: utilisateurId })
       .toArray();
 
     if (commande.length === 0) {
       res.status(404).json({
-        message: "Panier vide",
+        message: "Aucune commande trouvée pour cet utilisateur",
       });
 
       return;
@@ -128,7 +218,7 @@ export async function obtenirCommandeParUtilisateurId(
 }
 
 /**
- * Read
+ * READ
  *
  * API qui retourne la liste complete des commandes passees
  *
@@ -137,13 +227,13 @@ export async function obtenirCommandeParUtilisateurId(
  *
  * @author Martin Ore Rodriguez
  */
-export async function obtenirTousCommandes(
+export async function obtenirToutesCommandes(
   req: Request,
   res: Response,
 ): Promise<void> {
   try {
     const commandes = await getDb()
-      .collection<Commande>("commandes")
+      .collection<Commande>(Collection.COMMANDES)
       .find()
       .toArray();
 
@@ -192,6 +282,7 @@ export async function actualiserStatutCommande(
       return;
     }
 
+    // le nouveau statut se trouve dans le body du request
     const nouveauStatut = req.body.statut;
 
     const resultat = await getDb()
@@ -206,6 +297,7 @@ export async function actualiserStatutCommande(
         },
       );
 
+    // statut et dateModification on ete modifie
     if (resultat.modifiedCount === 2) {
       res.status(200).json({
         message: "Statut de la commande actualise",
@@ -231,6 +323,8 @@ export async function actualiserStatutCommande(
  * @param req identifiant d'une commande
  * @param res confirmation de la commande supprimee ou message d'erreur
  * @returns message d'erreur lorsque les validations echoues
+ *
+ * @author Martin Ore Rodriguez
  */
 export async function supprimerCommande(
   req: Request,
@@ -247,9 +341,10 @@ export async function supprimerCommande(
     }
 
     const resultat = await getDb()
-      .collection<Commande>("commandes")
+      .collection<Commande>(Collection.COMMANDES)
       .deleteOne({ _id: new ObjectId(commandeId.toString()) });
 
+    // nombre d'element supprime devrait etre 1 seul
     if (resultat.deletedCount === 1) {
       res.status(200).json({
         message: "Commande supprimee avec succes",

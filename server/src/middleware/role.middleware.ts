@@ -14,15 +14,6 @@ import { UtilisateurRole } from "../types/utilisateur-role.type.js";
  *
  * @author Martin Ore Rodriguez
  */
-
-/**
- * Fonction qui permet de valider l'authentification de l'utilisateur et l'acces a des routes APIs selon ron role
- *
- * @param rolesAutorises table de roles possibles
- * @returns next()
- *
- * @author Martin Ore Rodriguez
- */
 export function requireRole(...rolesAutorises: UtilisateurRole[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
