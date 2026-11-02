@@ -8,6 +8,7 @@ import { Collection } from "../types/colllectionNoms.type.js";
 import { StatutCommande } from "../types/statutCommande.type.js";
 import { Panier } from "../models/panier.model.js";
 import { Adresse } from "../types/adresse.type.js";
+import { AdresseType } from "../types/adresse-type.type.js";
 
 /**
  * Developpement du controlleur pour la collection "commandes" de la base de données "GreatBearShop"
@@ -28,6 +29,86 @@ const TAXES_QUEBEC = 0.14975;
 // permet d'arrondir le format a 2 decimales
 const arrondir = (montant: number): number => Math.round(montant * 100) / 100;
 
+// validation qui s'assure qu'un string ne soit pas vide
+const estTextNonVide = (valeur: unknown): valeur is string =>
+  typeof valeur === "string" && valeur.trim().length > 0;
+
+// validation qui s'assure qu'un nombre est un entier positif
+const estEntierPositif = (valeur: unknown): valeur is number =>
+  typeof valeur === "number" && Number.isInteger(valeur) && valeur > 0;
+
+/**
+ * Fonction qui valide l'adresse recue dans le body et retourne une adresse validee
+ *
+ * @param adresse valeur recue dans req.body.destination
+ * @returns une adresse qui a ete valide selon notre model ou null si elle n'est pas valide
+ *
+ * @author Martin Ore Rodriguez
+ */
+function validerAdresse(adresse: unknown): Adresse | null {
+  if (!adresse || typeof adresse !== "object") {
+    return null;
+  }
+
+  const {
+    type,
+    noCivic,
+    rue,
+    numAppartement,
+    ville,
+    province,
+    pays,
+    codePostal,
+  } = adresse as Record<string, unknown>;
+
+  // validation des champs obligatoires
+  if (
+    !estEntierPositif(noCivic) ||
+    !estTextNonVide(rue) ||
+    !estTextNonVide(ville) ||
+    !estTextNonVide(province) ||
+    !estTextNonVide(pays) ||
+    !estTextNonVide(codePostal)
+  ) {
+    return null;
+  }
+
+  // champs optionnels : s'ils sont present, ils doivent etre valides
+  // numero d'appertement
+  if (numAppartement !== undefined && !estEntierPositif(numAppartement)) {
+    return null;
+  }
+  // le type d'adresse
+  if (
+    type !== undefined &&
+    !Object.values(AdresseType).includes(type as AdresseType)
+  ) {
+    return null;
+  }
+
+  // construction de l'adresse apres les etapes de validation ci-haut
+  const adresseValide: Adresse = {
+    noCivic,
+    rue: rue.trim(),
+    ville: ville.trim(),
+    province: province.trim(),
+    pays: pays.trim(),
+    codePostal: codePostal.trim(),
+  };
+
+  if (type !== undefined) adresseValide.type = type as AdresseType;
+  if (numAppartement !== undefined)
+    adresseValide.numAppartement = numAppartement;
+
+  /*
+  Ici, l'adresse preferee de l'utilisateur est ignore, car il peut choisir une autre adresse de son choix qui ne figure pas
+  parmis les choix deja sauvegarde de celui-ci
+  Le frontend envoi un objet de type Adresse, on le valide en backend et on construit notre commande
+  */
+
+  return adresseValide;
+}
+
 /**
  * API qui permet de creer une nouvelle commande a partir d'un panier d'un utilisateur
  *
@@ -46,18 +127,32 @@ export async function creerCommande(
 
     // validation de l'id en parametre
     if (!utilisateurId) {
-      res.status(400).json({
+      res.status(401).json({
         message: "Utilisateur non authentifié",
       });
+
       return;
     }
 
-    // TODO : l'adresse de livraison devrait etre envoye par le body addresse { ... }?
+    // l'adresse de livraison choisie par l'utilisateur est envoyee dans le body
+    const destination = validerAdresse(req.body?.destination);
+
+    // on valide que la destination as Adresse respecte notre model et qu'elle ne soit pas vide
+    if (!destination) {
+      res.status(400).json({
+        message: "L'adresse de livraison est manquante ou invalide",
+      });
+
+      return;
+    }
+
+    // acces a notre DB
+    const db = getDb();
 
     // on recupere le panier pour un utilisateur
-    const panier = await getDb()
+    const panier = await db
       .collection<Panier>(Collection.PANIERS)
-      .findOne({ _id: utilisateurId });
+      .findOne({ utilisateurId });
 
     if (!panier) {
       res.status(404).json({
@@ -79,7 +174,7 @@ export async function creerCommande(
     const produitIds = panier.articles.map((article) => article.produitId);
 
     // on recupere le prix de chacun des produits dans le panier
-    const produits = await getDb()
+    const produits = await db
       .collection<Produit>(Collection.PRODUITS)
       .find({ _id: { $in: produitIds } }, { projection: { prix: 1 } })
       .toArray();
@@ -90,7 +185,7 @@ export async function creerCommande(
     );
 
     // attribut d'une commande, contient tous les elements achete
-    const achat = [];
+    const achat: ItemAchat[] = [];
 
     for (const article of panier.articles) {
       // on recupere le prix du produit se trouvant dans le panier a partir du dictionnaire prixParProduit<>
@@ -121,37 +216,38 @@ export async function creerCommande(
       prixTotalAvantTaxes * (1 + TAXES_QUEBEC),
     );
 
+    // date de la creation de la commmande, premiere modification
+    const maintenant = new Date();
+
     // nouvelle commande construite
-    const nouvelleCommande = {
+    const nouvelleCommande: Commande = {
       utilisateurId,
       achat,
-      destination, // a revoir
+      destination,
       statut: StatutCommande.RECU,
       prixTotalAvantTaxes,
       prixTotalApresTaxes,
-      dateAchat: new Date(),
-      dateModification: new Date(),
+      dateAchat: maintenant,
+      dateModification: maintenant,
     };
 
     // nouvelle commande ajoutee a la base de donnee
-    const resultat = await getDb()
+    const resultat = await db
       .collection<Commande>(Collection.COMMANDES)
       .insertOne(nouvelleCommande);
 
     // on vide le panier d'un utilisateur apres avoir confirme l'achat
-    await getDb()
-      .collection<Panier>(Collection.PANIERS)
-      .updateOne(
-        { _id: panier._id },
-        {
-          $set: {
-            articles: [],
-            dateModification: new Date(),
-          },
+    await db.collection<Panier>(Collection.PANIERS).updateOne(
+      { _id: panier._id },
+      {
+        $set: {
+          articles: [],
+          dateModification: new Date(),
         },
-      );
+      },
+    );
 
-    res.status(200).json({
+    res.status(201).json({
       message: "Commande cree avec succes",
       commande: { ...nouvelleCommande, _id: resultat.insertedId },
     });
