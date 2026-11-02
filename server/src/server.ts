@@ -5,6 +5,9 @@ import { connectToMongo, getDb } from "./db/mongo.js";
 import produitRouter from "./routes/produit.routes.js";
 import panierRouter from "./routes/panier.routes.js";
 import utilisateurRouter from "./routes/utilisateur.route.js";
+import commandeRouter from "./routes/commande.route.js";
+import cookieParser from "cookie-parser";
+import { Collection } from "./types/colllectionNoms.type.js";
 
 dotenv.config();
 
@@ -27,7 +30,7 @@ async function demarrerServeur(): Promise<void> {
 
     // Empêche la création de plusieurs paniers pour le même utilisateur.
     await getDb()
-      .collection("paniers")
+      .collection(Collection.PANIERS)
       // Crée un index unique sur le champ 'utilisateurId' pour empêcher la création de plusieurs paniers pour le même utilisateur.
       // {utilisateurId: 1} signifie que l'index est créé sur le champ 'utilisateurId' dans l'ordre croissant.
       .createIndex({ utilisateurId: 1 }, { unique: true });
@@ -35,17 +38,24 @@ async function demarrerServeur(): Promise<void> {
     const app = express();
 
     // Autorise les requêtes provenant du frontend.
-    app.use(cors());
+    app.use(
+      cors({
+        origin: process.env.FRONTEND_REACT,
+        credentials: true,
+      }),
+    );
+
+    // utilisation de cookie pour jwt
+    app.use(cookieParser());
 
     // Permet à Express de recevoir des données JSON.
     app.use(express.json());
 
-    // Configure les routes pour les produits et le panier.
+    // Definitions principales des routes
     app.use("/api/produits", produitRouter);
     app.use("/api/panier", panierRouter);
-
-    // Toutes les routes definies dans utilisateurRouter commenceront par /api/utilisateurs
     app.use("/api/utilisateurs", utilisateurRouter);
+    app.use("/api/commandes", commandeRouter);
 
     // Route temporaire pour vérifier le fonctionnement du serveur.
     app.get("/", (_req, res) => {

@@ -5,6 +5,9 @@ import { Request, Response } from "express";
 import { getDb } from "../db/mongo.js";
 import bcrypt from "bcrypt";
 import { UtilisateurRole } from "../types/utilisateur-role.type.js";
+import { Collection } from "../types/colllectionNoms.type.js";
+import { creerToken } from "../services/authentication.service.js";
+import { envoyerCookieToken } from "../utils/cookie.util.js";
 
 /**
  * Developpement du controller pour la collection "utilisateur" dans "GreatBearShop"
@@ -84,7 +87,9 @@ export async function ajouterUtilisateurClient(
     const courrielNormalise = (courriel as string).trim().toLowerCase();
 
     // on reference la collection "utilisateurs"
-    const collectionUtilisateur = getDb().collection("utilisateurs");
+    const collectionUtilisateur = getDb().collection<Utilisateur>(
+      Collection.UTILISATEURS,
+    );
 
     // on s'assure qu'un utilisateur n'existe pas avec ce meme courriel
     const utilisateurExistant = await collectionUtilisateur.findOne({
@@ -113,7 +118,6 @@ export async function ajouterUtilisateurClient(
       role: UtilisateurRole.CLIENT, // par defaut, le role d'un nouvel utilisateur est "client"
       ...(adresse !== undefined ? { adresse: adresse as Adresse[] } : {}), // ternary operator
       dateCreation: new Date(),
-      // TODO : ajouter une partie pour la creation du panier
     };
 
     // ajout du nouvel utilisateur dans la collection "utilisateurs"
@@ -122,12 +126,23 @@ export async function ajouterUtilisateurClient(
     // _hash est le mot de passe hashé, on ne veut pas le retourner dans la reponse de l'API
     const { motDePasseHash: _hash, ...utilisateurPublic } = nouvelUtilisateur;
 
+    const token = creerToken({
+      ...nouvelUtilisateur,
+      _id: resultat.insertedId,
+    });
+
+    // association du token au cookie de res: Response
+    envoyerCookieToken(res, token);
+
     res.status(201).json({
       _id: resultat.insertedId, // retour du _id insere dans la collection
       ...utilisateurPublic,
     });
   } catch (error) {
-    console.error("Erreur lors de la creation de l'utilsiateur: ", error);
+    console.error(
+      `[${new Date().toISOString()}] ajouterUtilisateurClient() ->`,
+      error,
+    );
 
     res.status(500).json({
       message: "Impossible de creer l'utilisateur",
@@ -151,7 +166,7 @@ export async function getTousUtilisateurs(
   try {
     // on recupere la collection "utilisateurs" et on exclut le mot de passe dans la projection
     const collectionUtilisateur = await getDb()
-      .collection("utilisateurs")
+      .collection<Utilisateur>(Collection.UTILISATEURS)
       .find({}, { projection: PROJECTION_SANS_MOT_DE_PASSE })
       .toArray();
 
@@ -176,7 +191,6 @@ export async function getTousUtilisateurs(
   }
 }
 
-// READ un utilisateur specifique par son Id MongoDB
 /**
  * READ
  *
@@ -185,6 +199,7 @@ export async function getTousUtilisateurs(
  * @param req id de l'utilisateur a recuperer dans req.params.id
  * @param res l'utilisateur trouve dans la collection "utilisateurs" sans son mot de passe ou un message d'erreur si l'utilisateur n'est pas trouve
  * @returns l'utilisateur trouve ou un message d'erreur si l'utilisateur n'existe pas
+ *
  * @author Martin Ore Rodriguez
  */
 export async function getUtilisateurParId(
@@ -205,7 +220,7 @@ export async function getUtilisateurParId(
 
     // recuperation de l'utilisateur sans son mot de passe
     const utilisateur = await getDb()
-      .collection("utilisateurs")
+      .collection<Utilisateur>(Collection.UTILISATEURS)
       .findOne(
         { _id: new ObjectId(id.toString()) },
         { projection: PROJECTION_SANS_MOT_DE_PASSE },
@@ -241,6 +256,8 @@ export async function getUtilisateurParId(
  * @param req courriel de l'utilisateur a recuperer dans req.body.courriel
  * @param res l'utilisateur trouve dans la collection "utilisateurs" sans son mot de passe ou un message d'erreur si l'utilisateur n'est pas trouve
  * @returns l'utilisateur trouve ou un message d'erreur si l'utilisateur n'existe pas
+ *
+ * @author Martin Ore Rodriguez
  */
 export async function getUtilisateurParCourriel(
   req: Request,
@@ -264,7 +281,7 @@ export async function getUtilisateurParCourriel(
 
     // on cherchera l'utilisateur par son courriel dans la collection "utilisateurs" sans son mot de passe
     const utilisateur = await getDb()
-      .collection("utilisateurs")
+      .collection<Utilisateur>(Collection.UTILISATEURS)
       .findOne(
         { courriel: courriel.trim().toLowerCase() },
         { projection: PROJECTION_SANS_MOT_DE_PASSE },
@@ -300,6 +317,8 @@ export async function getUtilisateurParCourriel(
  * @param req
  * @param res
  * @returns
+ *
+ * @author Martin Ore Rodriguez
  */
 export async function updateUtilisateurParId(
   req: Request,
@@ -388,7 +407,9 @@ export async function updateUtilisateurParId(
     }
 
     const utilisateur = req.params.id; // utilisateur a mettre a jour
-    const collectionUtilisateur = getDb().collection("utilisateurs");
+    const collectionUtilisateur = getDb().collection<Utilisateur>(
+      Collection.UTILISATEURS,
+    );
 
     if (updateFields.courriel) {
       const existant = await collectionUtilisateur.findOne({
@@ -441,6 +462,7 @@ export async function updateUtilisateurParId(
  * @param req id de l'utilisateur a supprimer dans req.params.id
  * @param res message de confirmation de suppression ou un message d'erreur si l'utilisateur n'est pas trouve
  * @returns confirmation ou message d'erreur si l'utilisateur n'existe pas
+ *
  * @author Martin Ore Rodriguez
  */
 export async function deleteUtilisateurParId(
@@ -458,7 +480,7 @@ export async function deleteUtilisateurParId(
     }
 
     const resultat = await getDb()
-      .collection("utilisateurs")
+      .collection<Utilisateur>(Collection.UTILISATEURS)
       .deleteOne({
         _id: new ObjectId(id.toString()),
       });
