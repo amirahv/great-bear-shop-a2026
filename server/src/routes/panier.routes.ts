@@ -5,6 +5,7 @@ import {
   modifierQuantiteArticle,
   retirerArticlePanier,
 } from "../controllers/panier.controller.js";
+import { authenticateToken } from "../middleware/jwt.middleware.js";
 
 const panierRouter = Router();
 
@@ -16,7 +17,7 @@ const panierRouter = Router();
  * d'authentification dans res.locals.utilisateurId.//////////////////////////attend Martin
  */
 
-panierRouter.get("/", obtenirPanier);
+panierRouter.get("/", authenticateToken, obtenirPanier);
 
 /**
  * POST /api/panier/articles
