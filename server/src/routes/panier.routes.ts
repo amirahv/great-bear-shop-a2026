@@ -22,10 +22,9 @@ panierRouter.get("/", authenticateToken, obtenirPanier);
  * POST /api/panier/articles
  *
  * Ajoute un article au panier de l'utilisateur connecté.
- * L'identifiant de l'utilisateur doit être fourni par le middleware
- * d'authentification dans res.locals.utilisateurId.////////////////////////attend Martin
+ * Le middleware authenticateToken place l'utilisateur dans req.user.
  */
-panierRouter.post("/articles", ajouterArticlePanier);
+panierRouter.post("/articles", authenticateToken, ajouterArticlePanier);
 
 /**
  * PATCH /api/panier/articles/:produitId

@@ -143,8 +143,9 @@ export async function obtenirPanier(
  * Si le produit est déjà présent, augmente sa quantité.
  * Crée le panier si nécessaire.
  *
- * @param req - Requête contenant produitId et quantite dans req.body.
- * @param res - Réponse contenant l'identifiant utilisateur dans res.locals.
+ * @param req - Requête contenant produitId et quantite dans req.body,
+ * ainsi que l'utilisateur connecté dans req.user.
+ * @param res - Réponse Express envoyée au client.
  * @author Amir
  */
 export async function ajouterArticlePanier(
@@ -152,9 +153,9 @@ export async function ajouterArticlePanier(
   res: Response,
 ): Promise<void> {
   try {
-    const utilisateurId: unknown = res.locals.utilisateurId;
+    const proprietaireId = req.user?._id;
 
-    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+    if (!proprietaireId) {
       res.status(401).json({
         message: "Vous devez être connecté pour modifier votre panier.",
       });
@@ -171,7 +172,6 @@ export async function ajouterArticlePanier(
     }
 
     const produitId = new ObjectId(donnees.produitId);
-    const proprietaireId = new ObjectId(utilisateurId);
 
     // Vérifie que le produit existe et qu'il est actif.
     const produit = await getDb()

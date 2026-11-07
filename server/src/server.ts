@@ -1,5 +1,5 @@
 import cors from "cors";
-import dotenv from "dotenv";
+import "dotenv/config";
 import express from "express";
 import { connectToMongo, getDb } from "./db/mongo.js";
 import produitRouter from "./routes/produit.routes.js";
@@ -8,8 +8,6 @@ import utilisateurRouter from "./routes/utilisateur.route.js";
 import commandeRouter from "./routes/commande.route.js";
 import cookieParser from "cookie-parser";
 import { Collection } from "./types/colllectionNoms.type.js";
-
-dotenv.config();
 
 const port = Number(process.env.PORT) || 4000;
 
