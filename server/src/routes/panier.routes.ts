@@ -41,9 +41,11 @@ panierRouter.patch(
  * DELETE /api/panier/articles/:produitId
  *
  * Retire un article du panier de l'utilisateur connecté.
- * L'identifiant de l'utilisateur doit être fourni par le middleware
- * d'authentification dans res.locals.utilisateurId.//////////////////////////attend Martin
  */
-panierRouter.delete("/articles/:produitId", retirerArticlePanier);
+panierRouter.delete(
+  "/articles/:produitId",
+  authenticateToken,
+  retirerArticlePanier,
+);
 
 export default panierRouter;
