@@ -13,10 +13,9 @@ const panierRouter = Router();
  * GET /api/panier
  *
  * Récupère le panier de l'utilisateur connecté.
- * L'identifiant de l'utilisateur doit être fourni par le middleware
- * d'authentification dans res.locals.utilisateurId.//////////////////////////attend Martin
+ * Le middleware authenticateToken valide le jeton
+ * et place l'utilisateur dans req.user.
  */
-
 panierRouter.get("/", authenticateToken, obtenirPanier);
 
 /**

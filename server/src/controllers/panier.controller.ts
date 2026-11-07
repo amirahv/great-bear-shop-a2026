@@ -37,21 +37,21 @@ function estDonneesArticlePanierValides(
 /**
  * Récupère le panier de l'utilisateur connecté.
  *
- * L'identifiant doit être fourni par le middleware
- * d'authentification dans res.locals.utilisateurId.
+ * Le panier est recherché à partir de req.user._id, fourni
+ * par le middleware d'authentification.
  *
- * @param _req - Requête Express.
+ * @param req - Requête Express contenant l'utilisateur connecté.
  * @param res - Réponse Express envoyée au client.
  * @author Amir
  */
 export async function obtenirPanier(
-  _req: Request,
+  req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const utilisateurId: unknown = res.locals.utilisateurId;
+    const utilisateurId = req.user?._id;
 
-    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+    if (!utilisateurId) {
       res.status(401).json({
         message: "Vous devez être connecté pour consulter votre panier.",
       });
@@ -60,9 +60,7 @@ export async function obtenirPanier(
 
     const panier = await getDb()
       .collection<Panier>("paniers")
-      .findOne({
-        utilisateurId: new ObjectId(utilisateurId),
-      });
+      .findOne({ utilisateurId });
 
     if (!panier) {
       res.status(404).json({
