@@ -293,9 +293,9 @@ export async function ajouterArticlePanier(
 /**
  * Modifie la quantité d'un article déjà présent dans le panier.
  *
- * @param req - Requête contenant produitId dans les paramètres
- * et la nouvelle quantité dans req.body.
- * @param res - Réponse contenant l'identifiant utilisateur dans res.locals.
+ * @param req - Requête contenant l'utilisateur dans req.user,
+ * le produitId dans req.params et la nouvelle quantité dans req.body.
+ * @param res - Réponse Express envoyée au client.
  * @author Amir
  */
 export async function modifierQuantiteArticle(
@@ -303,9 +303,9 @@ export async function modifierQuantiteArticle(
   res: Response,
 ): Promise<void> {
   try {
-    const utilisateurId: unknown = res.locals.utilisateurId;
+    const utilisateurId = req.user?._id;
 
-    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+    if (!utilisateurId) {
       res.status(401).json({
         message: "Vous devez être connecté pour modifier votre panier.",
       });
@@ -366,7 +366,7 @@ export async function modifierQuantiteArticle(
       .collection<Panier>("paniers")
       .updateOne(
         {
-          utilisateurId: new ObjectId(utilisateurId),
+          utilisateurId,
           "articles.produitId": identifiantProduit,
         },
         {

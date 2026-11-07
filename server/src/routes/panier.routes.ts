@@ -29,11 +29,13 @@ panierRouter.post("/articles", authenticateToken, ajouterArticlePanier);
 /**
  * PATCH /api/panier/articles/:produitId
  *
- * Modifie la quantité d'un article déjà présent dans le panier.
- * L'identifiant de l'utilisateur doit être fourni par le middleware
- * d'authentification dans res.locals.utilisateurId.//////////////////////////attend Martin
+ * Modifie la quantité d'un article dans le panier de l'utilisateur connecté.
  */
-panierRouter.patch("/articles/:produitId", modifierQuantiteArticle);
+panierRouter.patch(
+  "/articles/:produitId",
+  authenticateToken,
+  modifierQuantiteArticle,
+);
 
 /**
  * DELETE /api/panier/articles/:produitId
