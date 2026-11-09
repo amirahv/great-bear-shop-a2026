@@ -1,0 +1,23 @@
+{
+  "name": "great-bear-shop-a2026",
+  "version": "1.0.0",
+  "description": "Site de commerce électronique de livres, vêtements et jeux vidéo réalisé avec React, Express et MongoDB.",
+  "homepage": "https://github.com/amirahv/great-bear-shop-a2026#readme",
+  "bugs": {
+    "url": "https://github.com/amirahv/great-bear-shop-a2026/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amirahv/great-bear-shop-a2026.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "src/server.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "mongodb": "^7.8.0"
+  }
+}
