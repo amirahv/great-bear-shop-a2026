@@ -1,4 +1,4 @@
-import { ObjectId, UnorderedBulkOperation } from "mongodb";
+import { ObjectId } from "mongodb";
 import { getDb } from "../db/mongo.js";
 import { Request, Response } from "express";
 import { ItemAchat } from "../models/itemAchat.model.js";
@@ -288,7 +288,7 @@ export async function obtenirCommandeParUtilisateurId(
 
     const commande = await getDb()
       .collection<Commande>(Collection.COMMANDES)
-      .find({ _id: utilisateurId })
+      .find({ utilisateurId })
       .toArray();
 
     if (commande.length === 0) {
@@ -337,6 +337,8 @@ export async function obtenirToutesCommandes(
       res.status(404).json({
         message: "Aucune commande trouvee",
       });
+
+      return;
     }
 
     res.status(200).json(commandes);
@@ -381,10 +383,19 @@ export async function actualiserStatutCommande(
     // le nouveau statut se trouve dans le body du request
     const nouveauStatut = req.body.statut;
 
+    // verification que le nouveau statut soit valide et qu'ils soit compris parmis les choix possible
+    if (!Object.values(StatutCommande).includes(nouveauStatut)) {
+      res.status(400).json({
+        message: "Statut invalide",
+      });
+
+      return;
+    }
+
     const resultat = await getDb()
-      .collection<Commande>("commandes")
+      .collection<Commande>(Collection.COMMANDES)
       .updateOne(
-        { _id: commandeId },
+        { _id: new ObjectId(commandeId.toString()) },
         {
           $set: {
             statut: nouveauStatut,
@@ -393,12 +404,19 @@ export async function actualiserStatutCommande(
         },
       );
 
-    // statut et dateModification on ete modifie
-    if (resultat.modifiedCount === 2) {
-      res.status(200).json({
-        message: "Statut de la commande actualise",
+    // matchedCount === 0 signifie qu'aucune commande ne porte cet id
+    // donc, la commande n'a pas ete creee
+    if (resultat.matchedCount === 0) {
+      res.status(404).json({
+        message: "Commande introuvable",
       });
+
+      return;
     }
+
+    res.status(200).json({
+      message: "Statut de la commande actualise",
+    });
   } catch (error) {
     console.error(
       `[${new Date().toISOString()}] actualiserStatutCommande() -> `,
@@ -440,12 +458,18 @@ export async function supprimerCommande(
       .collection<Commande>(Collection.COMMANDES)
       .deleteOne({ _id: new ObjectId(commandeId.toString()) });
 
-    // nombre d'element supprime devrait etre 1 seul
-    if (resultat.deletedCount === 1) {
-      res.status(200).json({
-        message: "Commande supprimee avec succes",
+    // aucune commande trouvee pour la supprimer
+    if (resultat.deletedCount === 0) {
+      res.status(404).json({
+        message: "Commande introuvable",
       });
+
+      return;
     }
+
+    res.status(200).json({
+      message: "Commande supprimee avec succes",
+    });
   } catch (error) {
     console.error(
       `[${new Date().toISOString()}] supprimerCommande() -> `,
