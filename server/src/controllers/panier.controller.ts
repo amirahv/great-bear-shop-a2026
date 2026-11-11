@@ -37,21 +37,21 @@ function estDonneesArticlePanierValides(
 /**
  * Récupère le panier de l'utilisateur connecté.
  *
- * L'identifiant doit être fourni par le middleware
- * d'authentification dans res.locals.utilisateurId.
+ * Le panier est recherché à partir de req.user._id, fourni
+ * par le middleware d'authentification.
  *
- * @param _req - Requête Express.
+ * @param req - Requête Express contenant l'utilisateur connecté.
  * @param res - Réponse Express envoyée au client.
  * @author Amir
  */
 export async function obtenirPanier(
-  _req: Request,
+  req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const utilisateurId: unknown = res.locals.utilisateurId;
+    const utilisateurId = req.user?._id;
 
-    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+    if (!utilisateurId) {
       res.status(401).json({
         message: "Vous devez être connecté pour consulter votre panier.",
       });
@@ -60,9 +60,7 @@ export async function obtenirPanier(
 
     const panier = await getDb()
       .collection<Panier>("paniers")
-      .findOne({
-        utilisateurId: new ObjectId(utilisateurId),
-      });
+      .findOne({ utilisateurId });
 
     if (!panier) {
       res.status(404).json({
@@ -145,8 +143,9 @@ export async function obtenirPanier(
  * Si le produit est déjà présent, augmente sa quantité.
  * Crée le panier si nécessaire.
  *
- * @param req - Requête contenant produitId et quantite dans req.body.
- * @param res - Réponse contenant l'identifiant utilisateur dans res.locals.
+ * @param req - Requête contenant produitId et quantite dans req.body,
+ * ainsi que l'utilisateur connecté dans req.user.
+ * @param res - Réponse Express envoyée au client.
  * @author Amir
  */
 export async function ajouterArticlePanier(
@@ -154,9 +153,9 @@ export async function ajouterArticlePanier(
   res: Response,
 ): Promise<void> {
   try {
-    const utilisateurId: unknown = res.locals.utilisateurId;
+    const proprietaireId = req.user?._id;
 
-    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+    if (!proprietaireId) {
       res.status(401).json({
         message: "Vous devez être connecté pour modifier votre panier.",
       });
@@ -173,7 +172,6 @@ export async function ajouterArticlePanier(
     }
 
     const produitId = new ObjectId(donnees.produitId);
-    const proprietaireId = new ObjectId(utilisateurId);
 
     // Vérifie que le produit existe et qu'il est actif.
     const produit = await getDb()
@@ -295,9 +293,9 @@ export async function ajouterArticlePanier(
 /**
  * Modifie la quantité d'un article déjà présent dans le panier.
  *
- * @param req - Requête contenant produitId dans les paramètres
- * et la nouvelle quantité dans req.body.
- * @param res - Réponse contenant l'identifiant utilisateur dans res.locals.
+ * @param req - Requête contenant l'utilisateur dans req.user,
+ * le produitId dans req.params et la nouvelle quantité dans req.body.
+ * @param res - Réponse Express envoyée au client.
  * @author Amir
  */
 export async function modifierQuantiteArticle(
@@ -305,9 +303,9 @@ export async function modifierQuantiteArticle(
   res: Response,
 ): Promise<void> {
   try {
-    const utilisateurId: unknown = res.locals.utilisateurId;
+    const utilisateurId = req.user?._id;
 
-    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+    if (!utilisateurId) {
       res.status(401).json({
         message: "Vous devez être connecté pour modifier votre panier.",
       });
@@ -368,7 +366,7 @@ export async function modifierQuantiteArticle(
       .collection<Panier>("paniers")
       .updateOne(
         {
-          utilisateurId: new ObjectId(utilisateurId),
+          utilisateurId,
           "articles.produitId": identifiantProduit,
         },
         {
@@ -403,8 +401,9 @@ export async function modifierQuantiteArticle(
 /**
  * Retire un article du panier de l'utilisateur connecté.
  *
- * @param req - Requête contenant produitId dans les paramètres.
- * @param res - Réponse contenant l'identifiant utilisateur dans res.locals.
+ * @param req - Requête contenant l'utilisateur dans req.user
+ * et le produitId dans req.params.
+ * @param res - Réponse Express envoyée au client.
  * @author Amir
  */
 export async function retirerArticlePanier(
@@ -412,9 +411,9 @@ export async function retirerArticlePanier(
   res: Response,
 ): Promise<void> {
   try {
-    const utilisateurId: unknown = res.locals.utilisateurId;
+    const utilisateurId = req.user?._id;
 
-    if (typeof utilisateurId !== "string" || !ObjectId.isValid(utilisateurId)) {
+    if (!utilisateurId) {
       res.status(401).json({
         message: "Vous devez être connecté pour modifier votre panier.",
       });
@@ -436,7 +435,7 @@ export async function retirerArticlePanier(
       .collection<Panier>("paniers")
       .updateOne(
         {
-          utilisateurId: new ObjectId(utilisateurId),
+          utilisateurId,
           "articles.produitId": identifiantProduit,
         },
         {
