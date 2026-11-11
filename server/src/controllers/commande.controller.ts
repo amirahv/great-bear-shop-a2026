@@ -9,6 +9,10 @@ import { StatutCommande } from "../types/statutCommande.type.js";
 import { Panier } from "../models/panier.model.js";
 import { Adresse } from "../types/adresse.type.js";
 import { AdresseType } from "../types/adresse-type.type.js";
+import {
+  remettreStock,
+  retirerStock,
+} from "../services/inventoryManagement.service.js";
 
 /**
  * Developpement du controlleur pour la collection "commandes" de la base de données "GreatBearShop"
@@ -231,21 +235,48 @@ export async function creerCommande(
       dateModification: maintenant,
     };
 
-    // nouvelle commande ajoutee a la base de donnee
-    const resultat = await db
-      .collection<Commande>(Collection.COMMANDES)
-      .insertOne(nouvelleCommande);
+    // cette partie realise l'actualisation de l'inventaire a la suite de l'achat
+    const retrait = await retirerStock(nouvelleCommande.achat);
+
+    // utilisation du type ResultatRetraitStock
+    if (!retrait.success) {
+      res.status(409).json({
+        message: `Stock insuffisant pour le produit : ${retrait.produitId.toString()}`,
+      });
+
+      return;
+    }
+
+    let resultat;
+    try {
+      // nouvelle commande ajoutee a la base de donnee
+      resultat = await db
+        .collection<Commande>(Collection.COMMANDES)
+        .insertOne(nouvelleCommande);
+    } catch (error) {
+      await remettreStock(nouvelleCommande.achat);
+
+      throw error;
+    }
 
     // on vide le panier d'un utilisateur apres avoir confirme l'achat
-    await db.collection<Panier>(Collection.PANIERS).updateOne(
-      { _id: panier._id },
-      {
-        $set: {
-          articles: [],
-          dateModification: new Date(),
+    // si ca echoue, la commande existe deja, donc on ne renvoie pas d'erreur
+    try {
+      await db.collection<Panier>(Collection.PANIERS).updateOne(
+        { _id: panier._id },
+        {
+          $set: {
+            articles: [],
+            dateModification: new Date(),
+          },
         },
-      },
-    );
+      );
+    } catch (error) {
+      console.error(
+        `[${new Date().toISOString()}] creerCommande() -> panier non vide apres la commande ${resultat.insertedId.toString()}`,
+        error,
+      );
+    }
 
     res.status(201).json({
       message: "Commande cree avec succes",
@@ -370,9 +401,9 @@ export async function actualiserStatutCommande(
   res: Response,
 ): Promise<void> {
   try {
-    const commandeId = req.body.commandeId;
+    const commandeId = req.body?.commandeId;
 
-    if (!ObjectId.isValid(commandeId.toString())) {
+    if (!commandeId || !ObjectId.isValid(commandeId.toString())) {
       res.status(400).json({
         message: "Identifiant invalide",
       });
@@ -381,7 +412,7 @@ export async function actualiserStatutCommande(
     }
 
     // le nouveau statut se trouve dans le body du request
-    const nouveauStatut = req.body.statut;
+    const nouveauStatut = req.body?.statut;
 
     // verification que le nouveau statut soit valide et qu'ils soit compris parmis les choix possible
     if (!Object.values(StatutCommande).includes(nouveauStatut)) {
@@ -392,26 +423,60 @@ export async function actualiserStatutCommande(
       return;
     }
 
-    const resultat = await getDb()
-      .collection<Commande>(Collection.COMMANDES)
-      .updateOne(
-        { _id: new ObjectId(commandeId.toString()) },
-        {
-          $set: {
-            statut: nouveauStatut,
-            dateModification: new Date(),
-          },
+    const _id = new ObjectId(commandeId.toString());
+    const commandes = getDb().collection<Commande>(Collection.COMMANDES);
+
+    // on modifie la commande seulement si elle n'est pas deja annulee, et on recupere son etat "avant" la modification
+    // (returnDocument : "before")
+    const commandeAvant = await commandes.findOneAndUpdate(
+      { _id, statut: { $ne: StatutCommande.ANNULEE } },
+      {
+        $set: {
+          statut: nouveauStatut,
+          dateModification: new Date(),
         },
+      },
+      { returnDocument: "before" },
+    );
+
+    // acune commande modifiee : soit elle n'existe pas, soit elle est deja annulee
+    if (!commandeAvant) {
+      const existe = await commandes.findOne(
+        { _id },
+        { projection: { _id: 1 } },
       );
 
-    // matchedCount === 0 signifie qu'aucune commande ne porte cet id
-    // donc, la commande n'a pas ete creee
-    if (resultat.matchedCount === 0) {
-      res.status(404).json({
-        message: "Commande introuvable",
-      });
+      if (!existe) {
+        res.status(404).json({
+          message: "Commande introuvable",
+        });
+      } else {
+        res.status(409).json({
+          message: "La commande est deja annulee et ne peut plus etre modifiee",
+        });
+      }
 
       return;
+    }
+
+    // la commande vient de passer a ANNULEE, on remet les produits en stock
+    if (nouveauStatut === StatutCommande.ANNULEE) {
+      try {
+        await remettreStock(commandeAvant.achat);
+      } catch (error) {
+        // le stock n'a pas pu etre remise, alors on retablit l'ancien statut pour pouvoir reessayer
+        await commandes.updateOne(
+          { _id },
+          {
+            $set: {
+              statut: commandeAvant.statut,
+              dateModification: commandeAvant.dateModification,
+            },
+          },
+        );
+
+        throw error;
+      }
     }
 
     res.status(200).json({
