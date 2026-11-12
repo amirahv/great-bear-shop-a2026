@@ -1,4 +1,4 @@
-import { ObjectId, UnorderedBulkOperation } from "mongodb";
+import { ObjectId } from "mongodb";
 import { getDb } from "../db/mongo.js";
 import { Request, Response } from "express";
 import { ItemAchat } from "../models/itemAchat.model.js";
@@ -9,6 +9,10 @@ import { StatutCommande } from "../types/statutCommande.type.js";
 import { Panier } from "../models/panier.model.js";
 import { Adresse } from "../types/adresse.type.js";
 import { AdresseType } from "../types/adresse-type.type.js";
+import {
+  remettreStock,
+  retirerStock,
+} from "../services/inventoryManagement.service.js";
 
 /**
  * Developpement du controlleur pour la collection "commandes" de la base de données "GreatBearShop"
@@ -231,21 +235,48 @@ export async function creerCommande(
       dateModification: maintenant,
     };
 
-    // nouvelle commande ajoutee a la base de donnee
-    const resultat = await db
-      .collection<Commande>(Collection.COMMANDES)
-      .insertOne(nouvelleCommande);
+    // cette partie realise l'actualisation de l'inventaire a la suite de l'achat
+    const retrait = await retirerStock(nouvelleCommande.achat);
+
+    // utilisation du type ResultatRetraitStock
+    if (!retrait.success) {
+      res.status(409).json({
+        message: `Stock insuffisant pour le produit : ${retrait.produitId.toString()}`,
+      });
+
+      return;
+    }
+
+    let resultat;
+    try {
+      // nouvelle commande ajoutee a la base de donnee
+      resultat = await db
+        .collection<Commande>(Collection.COMMANDES)
+        .insertOne(nouvelleCommande);
+    } catch (error) {
+      await remettreStock(nouvelleCommande.achat);
+
+      throw error;
+    }
 
     // on vide le panier d'un utilisateur apres avoir confirme l'achat
-    await db.collection<Panier>(Collection.PANIERS).updateOne(
-      { _id: panier._id },
-      {
-        $set: {
-          articles: [],
-          dateModification: new Date(),
+    // si ca echoue, la commande existe deja, donc on ne renvoie pas d'erreur
+    try {
+      await db.collection<Panier>(Collection.PANIERS).updateOne(
+        { _id: panier._id },
+        {
+          $set: {
+            articles: [],
+            dateModification: new Date(),
+          },
         },
-      },
-    );
+      );
+    } catch (error) {
+      console.error(
+        `[${new Date().toISOString()}] creerCommande() -> panier non vide apres la commande ${resultat.insertedId.toString()}`,
+        error,
+      );
+    }
 
     res.status(201).json({
       message: "Commande cree avec succes",
@@ -288,7 +319,7 @@ export async function obtenirCommandeParUtilisateurId(
 
     const commande = await getDb()
       .collection<Commande>(Collection.COMMANDES)
-      .find({ _id: utilisateurId })
+      .find({ utilisateurId })
       .toArray();
 
     if (commande.length === 0) {
@@ -337,6 +368,8 @@ export async function obtenirToutesCommandes(
       res.status(404).json({
         message: "Aucune commande trouvee",
       });
+
+      return;
     }
 
     res.status(200).json(commandes);
@@ -368,9 +401,9 @@ export async function actualiserStatutCommande(
   res: Response,
 ): Promise<void> {
   try {
-    const commandeId = req.body.commandeId;
+    const commandeId = req.body?.commandeId;
 
-    if (!ObjectId.isValid(commandeId.toString())) {
+    if (!commandeId || !ObjectId.isValid(commandeId.toString())) {
       res.status(400).json({
         message: "Identifiant invalide",
       });
@@ -379,26 +412,76 @@ export async function actualiserStatutCommande(
     }
 
     // le nouveau statut se trouve dans le body du request
-    const nouveauStatut = req.body.statut;
+    const nouveauStatut = req.body?.statut;
 
-    const resultat = await getDb()
-      .collection<Commande>("commandes")
-      .updateOne(
-        { _id: commandeId },
-        {
-          $set: {
-            statut: nouveauStatut,
-            dateModification: new Date(),
-          },
+    // verification que le nouveau statut soit valide et qu'ils soit compris parmis les choix possible
+    if (!Object.values(StatutCommande).includes(nouveauStatut)) {
+      res.status(400).json({
+        message: "Statut invalide",
+      });
+
+      return;
+    }
+
+    const _id = new ObjectId(commandeId.toString());
+    const commandes = getDb().collection<Commande>(Collection.COMMANDES);
+
+    // on modifie la commande seulement si elle n'est pas deja annulee, et on recupere son etat "avant" la modification
+    // (returnDocument : "before")
+    const commandeAvant = await commandes.findOneAndUpdate(
+      { _id, statut: { $ne: StatutCommande.ANNULEE } },
+      {
+        $set: {
+          statut: nouveauStatut,
+          dateModification: new Date(),
         },
+      },
+      { returnDocument: "before" },
+    );
+
+    // acune commande modifiee : soit elle n'existe pas, soit elle est deja annulee
+    if (!commandeAvant) {
+      const existe = await commandes.findOne(
+        { _id },
+        { projection: { _id: 1 } },
       );
 
-    // statut et dateModification on ete modifie
-    if (resultat.modifiedCount === 2) {
-      res.status(200).json({
-        message: "Statut de la commande actualise",
-      });
+      if (!existe) {
+        res.status(404).json({
+          message: "Commande introuvable",
+        });
+      } else {
+        res.status(409).json({
+          message: "La commande est deja annulee et ne peut plus etre modifiee",
+        });
+      }
+
+      return;
     }
+
+    // la commande vient de passer a ANNULEE, on remet les produits en stock
+    if (nouveauStatut === StatutCommande.ANNULEE) {
+      try {
+        await remettreStock(commandeAvant.achat);
+      } catch (error) {
+        // le stock n'a pas pu etre remise, alors on retablit l'ancien statut pour pouvoir reessayer
+        await commandes.updateOne(
+          { _id },
+          {
+            $set: {
+              statut: commandeAvant.statut,
+              dateModification: commandeAvant.dateModification,
+            },
+          },
+        );
+
+        throw error;
+      }
+    }
+
+    res.status(200).json({
+      message: "Statut de la commande actualise",
+    });
   } catch (error) {
     console.error(
       `[${new Date().toISOString()}] actualiserStatutCommande() -> `,
@@ -440,12 +523,18 @@ export async function supprimerCommande(
       .collection<Commande>(Collection.COMMANDES)
       .deleteOne({ _id: new ObjectId(commandeId.toString()) });
 
-    // nombre d'element supprime devrait etre 1 seul
-    if (resultat.deletedCount === 1) {
-      res.status(200).json({
-        message: "Commande supprimee avec succes",
+    // aucune commande trouvee pour la supprimer
+    if (resultat.deletedCount === 0) {
+      res.status(404).json({
+        message: "Commande introuvable",
       });
+
+      return;
     }
+
+    res.status(200).json({
+      message: "Commande supprimee avec succes",
+    });
   } catch (error) {
     console.error(
       `[${new Date().toISOString()}] supprimerCommande() -> `,
