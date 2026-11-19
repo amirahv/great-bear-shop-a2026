@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router";
 
 function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  ///////////////////////////////////////////////
+  const [erreur, setErreur] = useState("");
+  const [connexionEnCours, setConnexionEnCours] = useState(false);
+  const navigate = useNavigate();
+  ////////////////////////////////////////////////
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
