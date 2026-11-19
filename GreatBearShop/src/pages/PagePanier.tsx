@@ -1,19 +1,76 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./PagePanier.css";
-import panierTemporaire from "../data/panierTemporaire";
+import type { ArticlePanierDetaille } from "../data/panierTemporaire";
 
 /**
- * Affiche les articles du panier et permet de modifier leurs quantités
- * ou de les retirer.
- *
- * Le panier est initialisé avec des données temporaires.
- * Les modifications restent en mémoire et sont perdues au rechargement.
+ * Affiche le panier de l'utilisateur connecté à partir des données du backend.
  *
  * @author Amir
  */
 function PagePanier() {
-  // Conserve les articles affichés et permet d'actualiser l'interface.
-  const [articles, setArticles] = useState(panierTemporaire);
+  const [articles, setArticles] = useState<ArticlePanierDetaille[]>([]);
+  const [chargement, setChargement] = useState(true);
+  const [erreur, setErreur] = useState("");
+
+  useEffect(() => {
+    let actif = true;
+
+    /**
+     * Récupère le panier associé au cookie de connexion du navigateur.
+     * Un utilisateur sans panier est affiché avec une liste vide.
+     *
+     * @author Amir
+     */
+    async function chargerPanier() {
+      try {
+        const reponse = await fetch("http://localhost:4000/api/panier", {
+          credentials: "include",
+        });
+
+        if (reponse.status === 401) {
+          throw new Error("Connectez-vous pour consulter votre panier.");
+        }
+
+        // Le backend retourne 404 si cet utilisateur n'a pas encore de panier.
+        if (reponse.status === 404) {
+          if (actif) {
+            setArticles([]);
+          }
+          return;
+        }
+
+        const donnees = await reponse.json();
+
+        if (!reponse.ok) {
+          throw new Error(
+            donnees.message || "Impossible de charger le panier.",
+          );
+        }
+
+        if (actif) {
+          setArticles(donnees.articles);
+        }
+      } catch (error) {
+        if (actif) {
+          setErreur(
+            error instanceof Error
+              ? error.message
+              : "Impossible de charger le panier.",
+          );
+        }
+      } finally {
+        if (actif) {
+          setChargement(false);
+        }
+      }
+    }
+
+    void chargerPanier();
+
+    return () => {
+      actif = false;
+    };
+  }, []); // Lance l'effet au montage du composant.
 
   /**
    * Retire un article du panier affiché.
@@ -78,6 +135,20 @@ function PagePanier() {
     }
 
     sousTotalEnCentimes += Math.round(article.totalLigne * 100);
+  }
+
+  if (chargement) {
+    return <p className="container py-5">Chargement du panier…</p>;
+  }
+
+  if (erreur) {
+    return (
+      <div className="container py-5">
+        <p className="alert alert-danger" role="alert">
+          {erreur}
+        </p>
+      </div>
+    );
   }
 
   return (
