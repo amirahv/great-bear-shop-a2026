@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Clothing from './pages/Clothing'
 import Maple from './pages/Maple'
 import PageLivres from './pages/PageLivres'
+import Administrateur from "./pages/Administrateur";
 
 function App() {
   const [page, setPage] = useState('clothing')
@@ -37,6 +38,7 @@ function App() {
       {page === 'clothing' && <Clothing />}
       {page === 'maple' && <Maple />}
       {page === 'livres' && <PageLivres />}
+      {page === 'administrateur' && <Administrateur />}
     </>
   )
 }
