@@ -11,6 +11,10 @@ function PagePanier() {
   const [articles, setArticles] = useState<ArticlePanierDetaille[]>([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState("");
+  // Affiche les erreurs de modification sans masquer le panier.
+  const [erreurModification, setErreurModification] = useState("");
+  // Désactive les boutons pendant une modification du panier.
+  const [modificationEnCours, setModificationEnCours] = useState(false);
 
   useEffect(() => {
     let actif = true;
@@ -73,16 +77,52 @@ function PagePanier() {
   }, []); // Lance l'effet au montage du composant.
 
   /**
-   * Retire un article du panier affiché.
+   * Supprime un article dans le panier de l'utilisateur connecté.
+   * Actualise l'affichage après la confirmation du serveur.
    *
    * @param produitId - Identifiant du produit à retirer.
    * @author Amir
    */
-  function retirerArticle(produitId: string) {
-    // Crée une nouvelle liste contenant tous les autres articles.
-    setArticles((articlesActuels) =>
-      articlesActuels.filter((article) => article.produitId !== produitId),
-    );
+  async function retirerArticle(produitId: string) {
+    if (modificationEnCours) {
+      return;
+    }
+
+    setErreurModification("");
+    setModificationEnCours(true);
+
+    try {
+      const reponse = await fetch(
+        `http://localhost:4000/api/panier/articles/${encodeURIComponent(produitId)}`,
+        {
+          method: "DELETE",
+
+          // Envoie le cookie permettant au serveur d'identifier l'utilisateur.
+          credentials: "include",
+        },
+      );
+
+      const donnees = await reponse.json();
+
+      if (!reponse.ok) {
+        throw new Error(donnees.message || "Impossible de retirer l'article.");
+      }
+
+      // Retire l'article affiché uniquement si le serveur confirme la suppression.
+      // Le sous-total est recalculé lors du nouvel affichage du composant.
+      setArticles((articlesActuels) =>
+        articlesActuels.filter((article) => article.produitId !== produitId),
+      );
+    } catch (error) {
+      // Conserve les articles affichés lorsque la suppression échoue.
+      setErreurModification(
+        error instanceof Error
+          ? error.message
+          : "Impossible de joindre le serveur.",
+      );
+    } finally {
+      setModificationEnCours(false);
+    }
   }
 
   /**
@@ -156,6 +196,13 @@ function PagePanier() {
       <div className="container py-5">
         <h1 className="mb-4">Le panier</h1>
 
+        {/* Conserve le panier visible pour permettre une nouvelle tentative. */}
+        {erreurModification && (
+          <p className="alert alert-danger" role="alert">
+            {erreurModification}
+          </p>
+        )}
+
         {/* Affiche un message si le panier est vide, sinon la liste des articles. */}
         {articles.length === 0 ? (
           <p>Votre panier est vide.</p>
@@ -198,7 +245,7 @@ function PagePanier() {
                         type="button"
                         className="btn bouton-panier bouton-quantite"
                         aria-label={`Diminuer la quantité de ${article.nom}`}
-                        disabled={article.quantite <= 1}
+                        disabled={modificationEnCours || article.quantite <= 1}
                         onClick={() =>
                           modifierQuantite(
                             article.produitId,
@@ -217,6 +264,7 @@ function PagePanier() {
                         type="button"
                         className="btn bouton-panier bouton-quantite"
                         aria-label={`Augmenter la quantité de ${article.nom}`}
+                        disabled={modificationEnCours}
                         onClick={() =>
                           modifierQuantite(
                             article.produitId,
@@ -232,6 +280,7 @@ function PagePanier() {
                       <button
                         type="button"
                         className="btn bouton-panier bouton-retirer"
+                        disabled={modificationEnCours}
                         onClick={() => retirerArticle(article.produitId)}
                       >
                         Retirer
