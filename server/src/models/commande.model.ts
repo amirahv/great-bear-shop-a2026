@@ -4,11 +4,27 @@ import { Adresse } from "../types/adresse.type.js";
 import { ItemAchat } from "./itemAchat.model.js";
 
 /**
+ * Informations de paiement associées à une commande.
+ *
+ * @author Amir
+ */
+export interface PaiementCommande {
+  statut: "EN_ATTENTE" | "PAYE" | "ECHEC" | "ANNULE" | "EXPIRE";
+
+  // Identifie la page de paiement créée chez Stripe.
+  stripeSessionId?: string;
+
+  // Identifie le paiement Stripe associé à cette commande.
+  stripePaymentIntentId?: string;
+
+  datePaiement?: Date;
+}
+
+/**
  * Ce modele represente une commande passe par un utilisateur
  *
  * @author Martin Ore Rodriguez
  */
-
 export interface Commande {
   _id?: ObjectId;
   utilisateurId: ObjectId;
