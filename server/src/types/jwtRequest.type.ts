@@ -12,7 +12,7 @@ import { Utilisateur } from "../models/utilisateur.model.js";
 declare global {
   namespace Express {
     interface Request {
-      user?: Utilisateur;
+      user: Utilisateur;
     }
   }
 }

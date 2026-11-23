@@ -142,7 +142,7 @@ function InscriptionForm() {
       await InscrireUtilisateur(formulaire);
 
       // si l'ajout de l'utilisateur est reussi, alors on navigue vers son profil
-      navigate("/");
+      navigate("/profil");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Vérifiez les champs saisies.";

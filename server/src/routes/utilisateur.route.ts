@@ -6,6 +6,7 @@ import {
   getUtilisateurParCourriel,
   updateUtilisateurParId,
   deleteUtilisateurParId,
+  getMonProfil,
 } from "../controllers/utilisateur.controller.js";
 import { login, logout } from "../controllers/authentication.controller.js";
 import { authenticateToken } from "../middleware/jwt.middleware.js";
@@ -64,6 +65,18 @@ utilisateurRouter.get(
   authenticateToken,
   requireRole(UtilisateurRole.ADMIN),
   getUtilisateurParCourriel,
+);
+
+/**
+ * GET /api/utilisateur/monProfil
+ *
+ * Retourne les informations d'un utilisateur sans son mot de passe
+ */
+utilisateurRouter.get(
+  "/monProfil",
+  authenticateToken,
+  requireRole(UtilisateurRole.CLIENT),
+  getMonProfil,
 );
 
 /**

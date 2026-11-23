@@ -127,7 +127,7 @@ export async function creerCommande(
   res: Response,
 ): Promise<void> {
   try {
-    const utilisateurId = req.user?._id;
+    const utilisateurId = req.user._id;
 
     // validation de l'id en parametre
     if (!utilisateurId) {
@@ -307,7 +307,7 @@ export async function obtenirCommandeParUtilisateurId(
   res: Response,
 ): Promise<void> {
   try {
-    const utilisateurId = req.user?._id;
+    const utilisateurId = req.user._id;
 
     if (!utilisateurId) {
       res.status(400).json({

@@ -191,6 +191,21 @@ export async function getTousUtilisateurs(
   }
 }
 
+// GET pour permettre a un utilisateur d'acceder a ses propres informations
+export async function getMonProfil(req: Request, res: Response): Promise<void> {
+  const utilisateur = req.user;
+
+  if (!utilisateur) {
+    res.status(401).json({
+      message: "Utilisateur non authentifié",
+    });
+  }
+
+  const { motDePasseHash: _hash, ...utilisateurPublic } = utilisateur;
+
+  res.status(200).json(utilisateur);
+}
+
 /**
  * READ
  *
@@ -325,7 +340,7 @@ export async function updateUtilisateurParId(
   res: Response,
 ): Promise<void> {
   try {
-    const id = req.user?._id;
+    const id = req.user._id;
 
     // verification que l'utilisateur soit connecte
     if (!id) {
