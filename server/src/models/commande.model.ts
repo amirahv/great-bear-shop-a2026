@@ -31,6 +31,8 @@ export interface Commande {
   achat: ItemAchat[];
   destination: Adresse;
   statut: StatutCommande;
+  // Suit le paiement indépendamment de la préparation et de la livraison.
+  paiement?: PaiementCommande;
   prixTotalAvantTaxes: number;
   prixTotalApresTaxes: number;
   dateAchat: Date;
