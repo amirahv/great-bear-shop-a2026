@@ -135,7 +135,7 @@ export async function ajouterUtilisateurClient(
     envoyerCookieToken(res, token);
 
     res.status(201).json({
-      _id: resultat.insertedId, // retour du _id insere dans la collection
+      //_id: resultat.insertedId, // retour du _id insere dans la collection
       ...utilisateurPublic,
     });
   } catch (error) {
@@ -325,12 +325,12 @@ export async function updateUtilisateurParId(
   res: Response,
 ): Promise<void> {
   try {
-    const id = req.params.id;
+    const id = req.user?._id;
 
-    // verification de l'id pour s'assurer qu'il est un ObjectId valide
-    if (!ObjectId.isValid(id.toString())) {
-      res.status(400).json({
-        message: "Identifiant non valide",
+    // verification que l'utilisateur soit connecte
+    if (!id) {
+      res.status(401).json({
+        message: "utilisateur non authentifié",
       });
       return;
     }
@@ -414,7 +414,7 @@ export async function updateUtilisateurParId(
     if (updateFields.courriel) {
       const existant = await collectionUtilisateur.findOne({
         courriel: updateFields.courriel,
-        _id: { $ne: new ObjectId(utilisateur.toString()) },
+        _id: { $ne: id },
       });
 
       if (existant) {
@@ -427,7 +427,7 @@ export async function updateUtilisateurParId(
 
     // mise a jour de l'utilisateur
     const resultat = await collectionUtilisateur.updateOne(
-      { _id: new ObjectId(utilisateur.toString()) },
+      { _id: id },
       { $set: updateFields },
     );
 
