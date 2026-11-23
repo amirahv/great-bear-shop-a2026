@@ -135,7 +135,7 @@ export async function ajouterUtilisateurClient(
     envoyerCookieToken(res, token);
 
     res.status(201).json({
-      _id: resultat.insertedId, // retour du _id insere dans la collection
+      //_id: resultat.insertedId, // retour du _id insere dans la collection
       ...utilisateurPublic,
     });
   } catch (error) {
