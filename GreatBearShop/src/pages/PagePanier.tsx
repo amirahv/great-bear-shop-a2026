@@ -126,42 +126,80 @@ function PagePanier() {
   }
 
   /**
-   * Modifie la quantité d'un article et recalcule son montant.
-   * La quantité doit être un entier positif.
+   * Enregistre la nouvelle quantité, puis recharge le panier.
    *
    * @param produitId - Identifiant du produit à modifier.
    * @param nouvelleQuantite - Nouvelle quantité souhaitée.
    * @author Amir
    */
-  function modifierQuantite(produitId: string, nouvelleQuantite: number) {
-    // Refuse les quantités invalides avant de modifier l'état.
-    if (!Number.isSafeInteger(nouvelleQuantite) || nouvelleQuantite < 1) {
+  async function modifierQuantite(produitId: string, nouvelleQuantite: number) {
+    // Refuse une quantité invalide ou une modification déjà en cours.
+    if (
+      modificationEnCours ||
+      !Number.isSafeInteger(nouvelleQuantite) ||
+      nouvelleQuantite < 1
+    ) {
       return;
     }
 
-    setArticles((articlesActuels) =>
-      articlesActuels.map((article) => {
-        if (article.produitId !== produitId) {
-          return article;
-        }
+    setErreurModification("");
+    setModificationEnCours(true);
 
-        // Calcule en centimes pour limiter les erreurs d'arrondi monétaires.
-        const prixEnCentimes =
-          article.prixUnitaire !== null
-            ? Math.round(article.prixUnitaire * 100)
-            : null;
+    // Permet de distinguer un échec d'enregistrement d'un échec d'affichage.
+    let quantiteEnregistree = false;
 
-        return {
-          // Copie l'article et remplace sa quantité ainsi que son montant.
-          ...article,
-          quantite: nouvelleQuantite,
-          totalLigne:
-            prixEnCentimes !== null
-              ? (prixEnCentimes * nouvelleQuantite) / 100
-              : null,
-        };
-      }),
-    );
+    try {
+      const reponse = await fetch(
+        `http://localhost:4000/api/panier/articles/${encodeURIComponent(produitId)}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          // Envoie la quantité finale souhaitée.
+          body: JSON.stringify({ quantite: nouvelleQuantite }),
+        },
+      );
+
+      const donnees = await reponse.json();
+
+      if (!reponse.ok) {
+        throw new Error(
+          donnees.message || "Impossible de modifier la quantité.",
+        );
+      }
+
+      quantiteEnregistree = true;
+
+      // Récupère les montants et la disponibilité calculés par le serveur.
+      const reponsePanier = await fetch("http://localhost:4000/api/panier", {
+        credentials: "include",
+      });
+
+      if (!reponsePanier.ok) {
+        throw new Error("Impossible de recharger le panier.");
+      }
+
+      const panierActualise = await reponsePanier.json();
+      setArticles(panierActualise.articles);
+    } catch (error) {
+      if (quantiteEnregistree) {
+        // L'enregistrement a réussi, mais l'affichage peut être périmé.
+        setErreurModification(
+          "La quantité a été enregistrée, mais le panier n'a pas pu être actualisé. Rechargez la page.",
+        );
+      } else {
+        setErreurModification(
+          error instanceof Error
+            ? error.message
+            : "Impossible de joindre le serveur.",
+        );
+      }
+    } finally {
+      setModificationEnCours(false);
+    }
   }
 
   // Additionne les montants des articles en centimes.
