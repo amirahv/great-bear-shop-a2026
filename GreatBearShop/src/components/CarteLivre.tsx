@@ -1,75 +1,67 @@
-type Livre = {
-  id: number
-  titre: string
-  auteur: string
-  maison_edition: string
-  annee_publication: number
-  nombre_pages: number
-  prix: number
-  image: string
-}
+import type { ProduitCatalogue } from "../types/produit";
 
 type ProductCardProps = {
-  livre: Livre
-}
+  livre: ProduitCatalogue;
+};
 
 function CarteLivre({ livre }: ProductCardProps) {
   return (
     <div className="card h-100 d-flex flex-column">
-
       {/* IMAGE DU LIVRE */}
       <div
         style={{
-          height: '250px',
-          backgroundColor: '#f3f3f3',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          height: "250px",
+          backgroundColor: "#f3f3f3",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <img
-          src={livre.image}
-          alt={livre.titre}
-          style={{
-            maxHeight: '100%',
-            maxWidth: '100%',
-            objectFit: 'contain',
-          }}
-        />
+        {/* Affiche la première image enregistrée pour le produit. */}
+        {livre.images.length > 0 ? (
+          <img
+            src={livre.images[0]}
+            alt={livre.nom}
+            style={{
+              maxHeight: "100%",
+              maxWidth: "100%",
+              objectFit: "contain",
+            }}
+          />
+        ) : (
+          <span className="text-muted">Aucune image</span>
+        )}
       </div>
 
       <div className="card-body d-flex flex-column">
         <p className="text-muted mb-1">
-          {livre.auteur}
+          {livre.caracteristiques.auteur ?? "Auteur non précisé"}
         </p>
 
-        <h5 className="card-title">
-          {livre.titre}
-        </h5>
+        <h5 className="card-title">{livre.nom}</h5>
 
         <p className="card-text text-muted">
-          Maison d'édition: {livre.maison_edition}
-        </p>
-
-        <p className="card-text text-muted">
-          Année de publication: {livre.annee_publication}
+          Maison d'édition:{" "}
+          {livre.caracteristiques.maisonEdition ?? "Non précisée"}
         </p>
 
         <p className="card-text text-muted">
-          {livre.nombre_pages} pages
+          Année de publication:{" "}
+          {livre.caracteristiques.anneePublication ?? "Non précisée"}
         </p>
 
-        <p className="fw-bold">
-          Prix: {livre.prix.toFixed(2)} $
+        <p className="card-text text-muted">
+          {livre.caracteristiques.nombrePages ?? "Nombre inconnu de"} pages
         </p>
+
+        <p className="fw-bold">Prix: {livre.prix.toFixed(2)} $</p>
 
         <button className="btn btn-dark w-100 mt-auto">
           Ajouter au panier
         </button>
       </div>
-
     </div>
-  )
+  );
 }
 
-export default CarteLivre
+export default CarteLivre;
