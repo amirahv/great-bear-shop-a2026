@@ -229,6 +229,10 @@ export async function creerCommande(
       achat,
       destination,
       statut: StatutCommande.RECU,
+      // La création de la commande ne confirme pas encore son paiement.
+      paiement: {
+        statut: "EN_ATTENTE",
+      },
       prixTotalAvantTaxes,
       prixTotalApresTaxes,
       dateAchat: maintenant,
