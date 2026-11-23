@@ -105,6 +105,7 @@ function InscriptionForm() {
   const [province, setProvince] = useState("");
   const [pays, setPays] = useState("");
   const [codePostal, setCodePostal] = useState("");
+  const [isAdresseParDefaut, setIsAdresseParDefaut] = useState(true);
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -126,6 +127,7 @@ function InscriptionForm() {
         province,
         pays,
         codePostal,
+        isAdresseParDefaut,
       };
 
       // formulair de l'utilsateur qui contient toutes ses informations
@@ -153,7 +155,7 @@ function InscriptionForm() {
     <div className="container mt-5">
       <Toaster position="top-center" reverseOrder={false} />
       <div className="row justify-content-center">
-        <div className="col-md-8 col-lg-6">
+        <div className="col-md-8 col-lg-6 mb-5">
           <div className="card shadow">
             <div className="card-body">
               <h2 className="text-center mb-4 text-dark">Créer un compte</h2>
@@ -190,7 +192,6 @@ function InscriptionForm() {
                     />
                   </div>
                 </div>
-
                 <div className="mb-3">
                   <label htmlFor="email" className="form-label fw-bold">
                     Adresse courriel
@@ -205,7 +206,6 @@ function InscriptionForm() {
                     required
                   />
                 </div>
-
                 <div className="mb-3">
                   <label htmlFor="password" className="form-label fw-bold">
                     Mot de passe
@@ -225,7 +225,6 @@ function InscriptionForm() {
                     Le mot de passe doit contenir au moins 8 caractères.
                   </div>
                 </div>
-
                 <div className="mb-3">
                   <label
                     htmlFor="confirmPassword"
@@ -244,9 +243,7 @@ function InscriptionForm() {
                     required
                   />
                 </div>
-
                 <h5 className="mt-4 mb-3 text-dark">Adresse</h5>
-
                 <div className="row g-3 mb-3">
                   <div className="col-md-3">
                     <label htmlFor="noCivic" className="form-label fw-bold">
@@ -263,7 +260,6 @@ function InscriptionForm() {
                       required
                     />
                   </div>
-
                   <div className="col-md-6">
                     <label htmlFor="rue" className="form-label fw-bold">
                       Rue
@@ -278,7 +274,6 @@ function InscriptionForm() {
                       required
                     />
                   </div>
-
                   <div className="col-md-3">
                     <label
                       htmlFor="numAppartement"
@@ -296,7 +291,6 @@ function InscriptionForm() {
                       onChange={(e) => setnumAppartement(e.target.value)}
                     />
                   </div>
-
                   <div className="col-md-6">
                     <label htmlFor="ville" className="form-label fw-bold">
                       Ville
@@ -311,7 +305,6 @@ function InscriptionForm() {
                       required
                     />
                   </div>
-
                   <div className="col-md-6">
                     <label htmlFor="codePostal" className="form-label fw-bold">
                       Code postal
@@ -326,7 +319,6 @@ function InscriptionForm() {
                       required
                     />
                   </div>
-
                   <div className="col-md-6">
                     <label htmlFor="province" className="form-label fw-bold">
                       Province
@@ -341,7 +333,6 @@ function InscriptionForm() {
                       required
                     />
                   </div>
-
                   <div className="col-md-6">
                     <label htmlFor="pays" className="form-label fw-bold">
                       Pays
@@ -388,6 +379,24 @@ function InscriptionForm() {
                   </div>
                 </div>
 
+                <div className="col-12 mb-5">
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="isAdresseParDefaut"
+                      checked={isAdresseParDefaut}
+                      onChange={(e) => setIsAdresseParDefaut(e.target.checked)}
+                    />
+
+                    <label
+                      className="form-check-label"
+                      htmlFor="isAdresseParDefaut"
+                    >
+                      Utiliser comme adresse par défaut
+                    </label>
+                  </div>
+                </div>
                 <button type="submit" className="btn btn-primary w-100">
                   S'inscrire
                 </button>
