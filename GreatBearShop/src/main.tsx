@@ -21,6 +21,7 @@ import PageLivres from "./pages/PageLivres";
 import PageConnexion from "./pages/PageConnexion";
 import Games from "./pages/Games";
 import PageProfil from "./pages/PageProfil";
+import PageRetourPaiement from "./pages/PageRetourPaiement";
 
 // STRUCTURE COMMUNE À TOUTES LES PAGES
 function Layout() {
@@ -80,6 +81,10 @@ const router = createBrowserRouter([
       {
         path: "/profil",
         element: <PageProfil />,
+      },
+      {
+        path: "/paiement/retour",
+        element: <PageRetourPaiement />,
       },
     ],
   },
