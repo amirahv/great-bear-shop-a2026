@@ -239,7 +239,8 @@ export async function creerCommande(
       dateModification: maintenant,
     };
 
-    // cette partie realise l'actualisation de l'inventaire a la suite de l'achat
+    // Réserve les quantités pour cette commande en attente de paiement.
+    // La confirmation du paiement ne devra pas retirer ces quantités à nouveau.
     const retrait = await retirerStock(nouvelleCommande.achat);
 
     // utilisation du type ResultatRetraitStock
@@ -262,6 +263,9 @@ export async function creerCommande(
 
       throw error;
     }
+
+    // Conserve le panier pendant le paiement.
+    // Les quantités achetées seront retirées après confirmation par Stripe.
 
     res.status(201).json({
       message: "Commande cree avec succes",
