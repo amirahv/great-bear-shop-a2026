@@ -6,6 +6,7 @@ import { StatutCommande } from "../types/statutCommande.type.js";
 import { Collection } from "../types/colllectionNoms.type.js";
 import { stripe } from "../services/stripe.service.js";
 import { libererReservationExpiree } from "../services/expirationPaiement.service.js";
+import { confirmerPaiement } from "../services/confirmationPaiement.service.js";
 
 /**
  * Crée ou retrouve une session Stripe pour une commande en attente.
@@ -238,6 +239,98 @@ export async function creerSessionPaiement(
     // Conserve la commande pour permettre une nouvelle tentative.
     res.status(502).json({
       message: "Impossible de préparer le paiement. Veuillez réessayer.",
+    });
+  }
+}
+
+/**
+ * Consulte Stripe pour actualiser le paiement d'une commande.
+ * Permet de rattraper une notification manquée.
+ *
+ * @author Amir
+ */
+export async function synchroniserPaiement(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const utilisateurId = req.user?._id;
+
+    if (!utilisateurId) {
+      res.status(401).json({
+        message: "Connectez-vous pour consulter votre paiement.",
+      });
+      return;
+    }
+
+    const commandeId: unknown = req.body?.commandeId;
+
+    if (typeof commandeId !== "string" || !ObjectId.isValid(commandeId)) {
+      res.status(400).json({
+        message: "L'identifiant de la commande est invalide.",
+      });
+      return;
+    }
+
+    const identifiant = new ObjectId(commandeId);
+    const commandes = getDb().collection<Commande>(Collection.COMMANDES);
+
+    // Vérifie que la commande appartient à l'utilisateur connecté.
+    const commande = await commandes.findOne({
+      _id: identifiant,
+      utilisateurId,
+    });
+
+    if (!commande) {
+      res.status(404).json({
+        message: "Commande introuvable.",
+      });
+      return;
+    }
+
+    const sessionId = commande.paiement?.stripeSessionId;
+
+    if (!sessionId) {
+      res.status(409).json({
+        message: "Cette commande n'a pas de session Stripe.",
+      });
+      return;
+    }
+
+    // Obtient l'état réel auprès de Stripe.
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.payment_status === "paid") {
+      // Réutilise les vérifications et protections du webhook.
+      await confirmerPaiement(
+        session.id,
+        commande.paiement?.datePaiement ?? new Date(),
+      );
+    } else if (
+      session.status === "expired" &&
+      session.payment_status === "unpaid"
+    ) {
+      await libererReservationExpiree(session.id);
+    }
+
+    const commandeActualisee = await commandes.findOne({
+      _id: identifiant,
+      utilisateurId,
+    });
+
+    if (!commandeActualisee) {
+      throw new Error("Commande introuvable après synchronisation.");
+    }
+
+    res.status(200).json({
+      commandeId: identifiant.toHexString(),
+      paiement: commandeActualisee.paiement,
+    });
+  } catch (error) {
+    console.error("Erreur de synchronisation du paiement :", error);
+
+    res.status(502).json({
+      message: "Impossible de synchroniser le paiement.",
     });
   }
 }
