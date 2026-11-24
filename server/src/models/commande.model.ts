@@ -21,6 +21,9 @@ export interface PaiementCommande {
 
   // Conserve une expiration fixe pour les nouvelles tentatives de création.
   stripeDateExpiration?: Date;
+
+  // Indique que les quantités achetées ont été retirées du panier.
+  panierActualise?: boolean;
 }
 
 /**

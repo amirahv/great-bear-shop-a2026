@@ -9,6 +9,7 @@ import commandeRouter from "./routes/commande.route.js";
 import cookieParser from "cookie-parser";
 import { Collection } from "./types/colllectionNoms.type.js";
 import paiementRouter from "./routes/paiement.routes.js";
+import { recevoirWebhookStripe } from "./controllers/webhookStripe.controller.js";
 
 const port = Number(process.env.PORT) || 4000;
 
@@ -46,6 +47,13 @@ async function demarrerServeur(): Promise<void> {
 
     // utilisation de cookie pour jwt
     app.use(cookieParser());
+
+    // Conserve le corps brut pour vérifier les notifications Stripe.
+    app.post(
+      "/api/paiements/webhook",
+      express.raw({ type: "application/json" }),
+      recevoirWebhookStripe,
+    );
 
     // Permet à Express de recevoir des données JSON.
     app.use(express.json());
