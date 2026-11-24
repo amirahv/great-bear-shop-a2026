@@ -263,25 +263,6 @@ export async function creerCommande(
       throw error;
     }
 
-    // on vide le panier d'un utilisateur apres avoir confirme l'achat
-    // si ca echoue, la commande existe deja, donc on ne renvoie pas d'erreur
-    try {
-      await db.collection<Panier>(Collection.PANIERS).updateOne(
-        { _id: panier._id },
-        {
-          $set: {
-            articles: [],
-            dateModification: new Date(),
-          },
-        },
-      );
-    } catch (error) {
-      console.error(
-        `[${new Date().toISOString()}] creerCommande() -> panier non vide apres la commande ${resultat.insertedId.toString()}`,
-        error,
-      );
-    }
-
     res.status(201).json({
       message: "Commande cree avec succes",
       commande: { ...nouvelleCommande, _id: resultat.insertedId },
