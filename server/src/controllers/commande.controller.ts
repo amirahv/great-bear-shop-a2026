@@ -415,6 +415,21 @@ export async function actualiserStatutCommande(
     const _id = new ObjectId(commandeId.toString());
     const commandes = getDb().collection<Commande>(Collection.COMMANDES);
 
+    const commandeActuelle = await commandes.findOne({ _id });
+
+    // Réserve les changements liés au paiement à son parcours dédié.
+    if (
+      commandeActuelle?.paiement &&
+      (commandeActuelle.paiement.statut !== "PAYE" ||
+        nouveauStatut === StatutCommande.ANNULEE)
+    ) {
+      res.status(409).json({
+        message:
+          "Une commande impayée ne peut pas être préparée. L'annulation d'une commande Stripe doit passer par le parcours de paiement.",
+      });
+      return;
+    }
+
     // on modifie la commande seulement si elle n'est pas deja annulee, et on recupere son etat "avant" la modification
     // (returnDocument : "before")
     const commandeAvant = await commandes.findOneAndUpdate(

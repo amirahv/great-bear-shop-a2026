@@ -5,6 +5,7 @@ import type { Commande } from "../models/commande.model.js";
 import { StatutCommande } from "../types/statutCommande.type.js";
 import { Collection } from "../types/colllectionNoms.type.js";
 import { stripe } from "../services/stripe.service.js";
+import { libererReservationExpiree } from "../services/expirationPaiement.service.js";
 
 /**
  * Crée ou retrouve une session Stripe pour une commande en attente.
@@ -54,6 +55,19 @@ export async function creerSessionPaiement(
     if (!commande) {
       res.status(404).json({
         message: "Commande introuvable.",
+      });
+      return;
+    }
+
+    // Permet de reprendre une libération interrompue.
+    if (
+      commande.paiement?.statut === "EXPIRE" &&
+      commande.paiement.stripeSessionId
+    ) {
+      await libererReservationExpiree(commande.paiement.stripeSessionId);
+
+      res.status(409).json({
+        message: "La session a expiré. Le stock réservé a été libéré.",
       });
       return;
     }
@@ -191,6 +205,16 @@ export async function creerSessionPaiement(
     if (resultat.matchedCount === 0) {
       res.status(409).json({
         message: "La commande a changé. Rechargez ses informations.",
+      });
+      return;
+    }
+
+    // Rattrape une expiration survenue avant la réception du webhook.
+    if (session.status === "expired") {
+      await libererReservationExpiree(session.id);
+
+      res.status(409).json({
+        message: "La session a expiré. Le stock réservé a été libéré.",
       });
       return;
     }

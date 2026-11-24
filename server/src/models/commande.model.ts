@@ -24,6 +24,9 @@ export interface PaiementCommande {
 
   // Indique que les quantités achetées ont été retirées du panier.
   panierActualise?: boolean;
+
+  // Indique que toutes les quantités réservées ont été remises en stock.
+  stockLibere?: boolean;
 }
 
 /**

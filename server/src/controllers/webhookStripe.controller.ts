@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import type Stripe from "stripe";
 import { stripe } from "../services/stripe.service.js";
 import { confirmerPaiement } from "../services/confirmationPaiement.service.js";
+import { libererReservationExpiree } from "../services/expirationPaiement.service.js";
 
 /**
  * Reçoit les événements Stripe et vérifie leur signature.
@@ -50,6 +51,8 @@ export async function recevoirWebhookStripe(
         evenement.data.object.id,
         new Date(evenement.created * 1000),
       );
+    } else if (evenement.type === "checkout.session.expired") {
+      await libererReservationExpiree(evenement.data.object.id);
     }
 
     res.status(200).json({ recu: true });

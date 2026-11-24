@@ -37,4 +37,6 @@ export interface Produit {
   actif: boolean;
   dateCreation: Date;
   dateModification: Date;
+  // Empêche de remettre deux fois le stock pour une même commande.
+  reservationsLiberees?: ObjectId[];
 }
