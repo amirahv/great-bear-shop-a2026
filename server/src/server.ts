@@ -8,6 +8,7 @@ import utilisateurRouter from "./routes/utilisateur.route.js";
 import commandeRouter from "./routes/commande.route.js";
 import cookieParser from "cookie-parser";
 import { Collection } from "./types/colllectionNoms.type.js";
+import paiementRouter from "./routes/paiement.routes.js";
 
 const port = Number(process.env.PORT) || 4000;
 
@@ -54,6 +55,7 @@ async function demarrerServeur(): Promise<void> {
     app.use("/api/panier", panierRouter);
     app.use("/api/utilisateurs", utilisateurRouter);
     app.use("/api/commandes", commandeRouter);
+    app.use("/api/paiements", paiementRouter);
 
     // Route temporaire pour vérifier le fonctionnement du serveur.
     app.get("/", (_req, res) => {

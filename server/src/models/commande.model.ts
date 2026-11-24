@@ -18,6 +18,9 @@ export interface PaiementCommande {
   stripePaymentIntentId?: string;
 
   datePaiement?: Date;
+
+  // Conserve une expiration fixe pour les nouvelles tentatives de création.
+  stripeDateExpiration?: Date;
 }
 
 /**
