@@ -24,8 +24,17 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { AdresseType } from "../../../server/src/types/adresse-type.type";
 import toast, { Toaster } from "react-hot-toast";
+
+// Valeurs d'adresse acceptées par le backend.
+const AdresseType = {
+  MAISON: "Maison",
+  TRAVAIL: "Travail",
+  AUTRE: "Autre",
+} as const;
+
+// Union des valeurs : "Maison" | "Travail" | "Autre".
+type AdresseType = (typeof AdresseType)[keyof typeof AdresseType];
 
 // point d'acces au backend
 const API_URL = import.meta.env.VITE_API_URL;
@@ -97,7 +106,7 @@ function InscriptionForm() {
   const [confirmationMotDePasse, setConfirmPassword] = useState("");
 
   // informations formulaire pour l'adresse de l'utilisateur
-  const [type, setType] = useState(AdresseType.AUTRE);
+  const [type, setType] = useState<AdresseType>(AdresseType.AUTRE);
   const [noCivic, setNoCivic] = useState("");
   const [rue, setRue] = useState("");
   const [numAppartement, setnumAppartement] = useState("");
