@@ -9,10 +9,8 @@ import { StatutCommande } from "../types/statutCommande.type.js";
 import { Panier } from "../models/panier.model.js";
 import { Adresse } from "../types/adresse.type.js";
 import { AdresseType } from "../types/adresse-type.type.js";
-import {
-  remettreStock,
-  retirerStock,
-} from "../services/inventoryManagement.service.js";
+import { remettreStock } from "../services/inventoryManagement.service.js";
+import { preparerReservationCommande } from "../services/reservationCommande.service.js";
 
 /**
  * Developpement du controlleur pour la collection "commandes" de la base de données "GreatBearShop"
@@ -114,6 +112,55 @@ function validerAdresse(adresse: unknown): Adresse | null {
 }
 
 /**
+ * Reprend la réservation et vérifie la cohérence de la tentative.
+ *
+ * @author Amir
+ */
+async function repondreApresReservation(
+  commande: Commande,
+  destination: Adresse,
+  res: Response,
+  statutSucces: 200 | 201,
+): Promise<void> {
+  // Compare les adresses après leur normalisation.
+  if (
+    JSON.stringify(validerAdresse(commande.destination)) !==
+    JSON.stringify(destination)
+  ) {
+    res.status(409).json({
+      message: "Cette clé de tentative est déjà associée à une autre adresse.",
+    });
+    return;
+  }
+
+  if (!commande._id) {
+    throw new Error("Identifiant de commande manquant.");
+  }
+
+  const commandeActualisee = await preparerReservationCommande(commande._id);
+
+  if (
+    commandeActualisee.etatReservation &&
+    commandeActualisee.etatReservation !== "RESERVEE"
+  ) {
+    res.status(409).json({
+      message:
+        "La réservation de cette commande n'a pas abouti. Vérifiez votre panier avant une nouvelle tentative.",
+      commande: commandeActualisee,
+    });
+    return;
+  }
+
+  res.status(statutSucces).json({
+    message:
+      statutSucces === 201
+        ? "Commande créée avec succès"
+        : "Commande retrouvée",
+    commande: commandeActualisee,
+  });
+}
+
+/**
  * API qui permet de creer une nouvelle commande a partir d'un panier d'un utilisateur
  *
  * @param req token qui contient une version Utilisateur public
@@ -152,6 +199,34 @@ export async function creerCommande(
 
     // acces a notre DB
     const db = getDb();
+
+    // La même tentative d'achat doit conserver la même clé (Amir) p4//////////////////////
+    const cleTentative: unknown = req.body?.cleTentative;
+
+    if (
+      typeof cleTentative !== "string" ||
+      !/^[A-Za-z0-9_-]{8,100}$/.test(cleTentative)
+    ) {
+      res.status(400).json({
+        message:
+          "La clé de tentative doit contenir entre 8 et 100 caractères : lettres, chiffres, tirets ou soulignements.",
+      });
+      return;
+    }
+
+    const commandes = db.collection<Commande>(Collection.COMMANDES);
+
+    // Recherche avant toute modification du stock.
+    const commandeExistante = await commandes.findOne({
+      utilisateurId,
+      cleTentative,
+    });
+
+    if (commandeExistante) {
+      await repondreApresReservation(commandeExistante, destination, res, 200);
+      return;
+    }
+    /////////////////////////////////////////////////////////////////////////////
 
     // on recupere le panier pour un utilisateur
     const panier = await db
@@ -225,63 +300,50 @@ export async function creerCommande(
 
     // nouvelle commande construite
     const nouvelleCommande: Commande = {
+      _id: new ObjectId(),
+      etatReservation: "EN_COURS",
       utilisateurId,
+      cleTentative,
       achat,
       destination,
       statut: StatutCommande.RECU,
+      // La création de la commande ne confirme pas encore son paiement.
+      paiement: {
+        statut: "EN_ATTENTE",
+      },
       prixTotalAvantTaxes,
       prixTotalApresTaxes,
       dateAchat: maintenant,
       dateModification: maintenant,
     };
+    // Enregistre la commande avant toute réservation de stock.
+    let commandeEnregistree: Commande = nouvelleCommande;
+    let statutSucces: 200 | 201 = 201;
 
-    // cette partie realise l'actualisation de l'inventaire a la suite de l'achat
-    const retrait = await retirerStock(nouvelleCommande.achat);
-
-    // utilisation du type ResultatRetraitStock
-    if (!retrait.success) {
-      res.status(409).json({
-        message: `Stock insuffisant pour le produit : ${retrait.produitId.toString()}`,
+    try {
+      await commandes.insertOne(nouvelleCommande);
+    } catch (error) {
+      // Une réponse peut être perdue après une insertion réussie.
+      // Retrouve aussi une commande créée par une requête simultanée.
+      const dejaEnregistree = await commandes.findOne({
+        utilisateurId,
+        cleTentative,
       });
 
-      return;
+      if (!dejaEnregistree) {
+        throw error;
+      }
+
+      commandeEnregistree = dejaEnregistree;
+      statutSucces = 200;
     }
 
-    let resultat;
-    try {
-      // nouvelle commande ajoutee a la base de donnee
-      resultat = await db
-        .collection<Commande>(Collection.COMMANDES)
-        .insertOne(nouvelleCommande);
-    } catch (error) {
-      await remettreStock(nouvelleCommande.achat);
-
-      throw error;
-    }
-
-    // on vide le panier d'un utilisateur apres avoir confirme l'achat
-    // si ca echoue, la commande existe deja, donc on ne renvoie pas d'erreur
-    try {
-      await db.collection<Panier>(Collection.PANIERS).updateOne(
-        { _id: panier._id },
-        {
-          $set: {
-            articles: [],
-            dateModification: new Date(),
-          },
-        },
-      );
-    } catch (error) {
-      console.error(
-        `[${new Date().toISOString()}] creerCommande() -> panier non vide apres la commande ${resultat.insertedId.toString()}`,
-        error,
-      );
-    }
-
-    res.status(201).json({
-      message: "Commande cree avec succes",
-      commande: { ...nouvelleCommande, _id: resultat.insertedId },
-    });
+    await repondreApresReservation(
+      commandeEnregistree,
+      destination,
+      res,
+      statutSucces,
+    );
   } catch (error) {
     console.error(`[${new Date().toISOString()}] creerCommande() ->`, error);
 
@@ -426,6 +488,21 @@ export async function actualiserStatutCommande(
     const _id = new ObjectId(commandeId.toString());
     const commandes = getDb().collection<Commande>(Collection.COMMANDES);
 
+    const commandeActuelle = await commandes.findOne({ _id });
+
+    // Réserve les changements liés au paiement à son parcours dédié.
+    if (
+      commandeActuelle?.paiement &&
+      (commandeActuelle.paiement.statut !== "PAYE" ||
+        nouveauStatut === StatutCommande.ANNULEE)
+    ) {
+      res.status(409).json({
+        message:
+          "Une commande impayée ne peut pas être préparée. L'annulation d'une commande Stripe doit passer par le parcours de paiement.",
+      });
+      return;
+    }
+
     // on modifie la commande seulement si elle n'est pas deja annulee, et on recupere son etat "avant" la modification
     // (returnDocument : "before")
     const commandeAvant = await commandes.findOneAndUpdate(
@@ -505,35 +582,58 @@ export async function actualiserStatutCommande(
  *
  * @author Martin Ore Rodriguez
  */
+/**
+ * Supprime seulement une ancienne commande annulée, sans suivi de paiement.
+ * Conserve les commandes dont la trace sert aux réservations et aux tentatives.
+ *
+ * @author Amir
+ */
 export async function supprimerCommande(
   req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const commandeId = req.params.id;
+    const commandeId: unknown = req.params.id;
 
-    if (!ObjectId.isValid(commandeId.toString())) {
+    if (typeof commandeId !== "string" || !ObjectId.isValid(commandeId)) {
       res.status(400).json({
         message: "Identifiant invalide",
       });
       return;
     }
 
-    const resultat = await getDb()
-      .collection<Commande>(Collection.COMMANDES)
-      .deleteOne({ _id: new ObjectId(commandeId.toString()) });
+    const _id = new ObjectId(commandeId);
+    const commandes = getDb().collection<Commande>(Collection.COMMANDES);
 
-    // aucune commande trouvee pour la supprimer
-    if (resultat.deletedCount === 0) {
-      res.status(404).json({
-        message: "Commande introuvable",
+    // Vérifie les conditions au moment même de la suppression.
+    const resultat = await commandes.deleteOne({
+      _id,
+      statut: StatutCommande.ANNULEE,
+      paiement: { $exists: false },
+      cleTentative: { $exists: false },
+      etatReservation: { $exists: false },
+    });
+
+    if (resultat.deletedCount === 1) {
+      res.status(200).json({
+        message: "Commande supprimée avec succès",
       });
-
       return;
     }
 
-    res.status(200).json({
-      message: "Commande supprimee avec succes",
+    // Distingue une commande protégée d'une commande inexistante.
+    const existe = await commandes.findOne({ _id }, { projection: { _id: 1 } });
+
+    if (!existe) {
+      res.status(404).json({
+        message: "Commande introuvable",
+      });
+      return;
+    }
+
+    res.status(409).json({
+      message:
+        "Cette commande est encore active ou doit être conservée pour le suivi du paiement et des réservations.",
     });
   } catch (error) {
     console.error(

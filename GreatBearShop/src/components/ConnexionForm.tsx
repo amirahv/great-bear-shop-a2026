@@ -1,14 +1,51 @@
-import { useState } from "react";
+import { useState, type SubmitEvent } from "react";
+import { useNavigate } from "react-router";
 
 function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const [erreur, setErreur] = useState("");
+  const [connexionEnCours, setConnexionEnCours] = useState(false);
+  const navigate = useNavigate();
 
-    console.log("Nom d'utilisateur:", username);
-    console.log("Password:", password);
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErreur("");
+    setConnexionEnCours(true);
+
+    try {
+      const reponse = await fetch(
+        "http://localhost:4000/api/utilisateurs/login",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            courriel: username,
+            motDePasse: password,
+          }),
+        },
+      );
+
+      const donnees = await reponse.json();
+
+      if (!reponse.ok) {
+        throw new Error(donnees.message || "Connexion impossible.");
+      }
+
+      navigate("/profil");
+    } catch (error) {
+      setErreur(
+        error instanceof Error
+          ? error.message
+          : "Impossible de joindre le serveur.",
+      );
+    } finally {
+      setConnexionEnCours(false);
+    }
   };
 
   return (
@@ -22,16 +59,16 @@ function LoginForm() {
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                   <label htmlFor="username" className="form-label fw-bold">
-                    Nom d'utilisateur
+                    Courriel
                   </label>
 
                   <input
-                    type="text"
+                    type="email"
                     id="username"
                     className="form-control"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Votre nom d'utilisateur"
+                    placeholder="Votre courriel"
                     required
                   />
                 </div>
@@ -52,8 +89,18 @@ function LoginForm() {
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary w-100">
-                  Se connecter
+                {erreur && (
+                  <p className="alert alert-danger" role="alert">
+                    {erreur}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  className="btn btn-primary w-100"
+                  disabled={connexionEnCours}
+                >
+                  {connexionEnCours ? "Connexion en cours…" : "Se connecter"}
                 </button>
               </form>
 

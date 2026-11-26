@@ -406,7 +406,10 @@ export async function updateUtilisateurParId(
       return;
     }
 
-    const utilisateur = req.params.id; // utilisateur a mettre a jour
+    // P3 : chaque client doit pouvoir modifier uniquement son propre compte (Amir).
+    // Utilise l'identifiant de l'utilisateur authentifié pour les opérations en base.
+    const utilisateur = utilisateurId;
+    ///////////////////////////////////////////////////////////////////////////////////
     const collectionUtilisateur = getDb().collection<Utilisateur>(
       Collection.UTILISATEURS,
     );

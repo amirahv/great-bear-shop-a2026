@@ -1,70 +1,205 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./PagePanier.css";
-import panierTemporaire from "../data/panierTemporaire";
+import type { ArticlePanierDetaille } from "../data/panierTemporaire";
 
 /**
- * Affiche les articles du panier et permet de modifier leurs quantités
- * ou de les retirer.
- *
- * Le panier est initialisé avec des données temporaires.
- * Les modifications restent en mémoire et sont perdues au rechargement.
+ * Affiche le panier de l'utilisateur connecté à partir des données du backend.
  *
  * @author Amir
  */
 function PagePanier() {
-  // Conserve les articles affichés et permet d'actualiser l'interface.
-  const [articles, setArticles] = useState(panierTemporaire);
+  const [articles, setArticles] = useState<ArticlePanierDetaille[]>([]);
+  const [chargement, setChargement] = useState(true);
+  const [erreur, setErreur] = useState("");
+  // Affiche les erreurs de modification sans masquer le panier.
+  const [erreurModification, setErreurModification] = useState("");
+  // Désactive les boutons pendant une modification du panier.
+  const [modificationEnCours, setModificationEnCours] = useState(false);
+
+  useEffect(() => {
+    let actif = true;
+
+    /**
+     * Récupère le panier associé au cookie de connexion du navigateur.
+     * Un utilisateur sans panier est affiché avec une liste vide.
+     *
+     * @author Amir
+     */
+    async function chargerPanier() {
+      try {
+        const reponse = await fetch("http://localhost:4000/api/panier", {
+          credentials: "include",
+        });
+
+        if (reponse.status === 401) {
+          throw new Error("Connectez-vous pour consulter votre panier.");
+        }
+
+        // Le backend retourne 404 si cet utilisateur n'a pas encore de panier.
+        if (reponse.status === 404) {
+          if (actif) {
+            setArticles([]);
+          }
+          return;
+        }
+
+        const donnees = await reponse.json();
+
+        if (!reponse.ok) {
+          throw new Error(
+            donnees.message || "Impossible de charger le panier.",
+          );
+        }
+
+        if (actif) {
+          setArticles(donnees.articles);
+        }
+      } catch (error) {
+        if (actif) {
+          setErreur(
+            error instanceof Error
+              ? error.message
+              : "Impossible de charger le panier.",
+          );
+        }
+      } finally {
+        if (actif) {
+          setChargement(false);
+        }
+      }
+    }
+
+    void chargerPanier();
+
+    return () => {
+      actif = false;
+    };
+  }, []); // Lance l'effet au montage du composant.
 
   /**
-   * Retire un article du panier affiché.
+   * Supprime un article dans le panier de l'utilisateur connecté.
+   * Actualise l'affichage après la confirmation du serveur.
    *
    * @param produitId - Identifiant du produit à retirer.
    * @author Amir
    */
-  function retirerArticle(produitId: string) {
-    // Crée une nouvelle liste contenant tous les autres articles.
-    setArticles((articlesActuels) =>
-      articlesActuels.filter((article) => article.produitId !== produitId),
-    );
+  async function retirerArticle(produitId: string) {
+    if (modificationEnCours) {
+      return;
+    }
+
+    setErreurModification("");
+    setModificationEnCours(true);
+
+    try {
+      const reponse = await fetch(
+        `http://localhost:4000/api/panier/articles/${encodeURIComponent(produitId)}`,
+        {
+          method: "DELETE",
+
+          // Envoie le cookie permettant au serveur d'identifier l'utilisateur.
+          credentials: "include",
+        },
+      );
+
+      const donnees = await reponse.json();
+
+      if (!reponse.ok) {
+        throw new Error(donnees.message || "Impossible de retirer l'article.");
+      }
+
+      // Retire l'article affiché uniquement si le serveur confirme la suppression.
+      // Le sous-total est recalculé lors du nouvel affichage du composant.
+      setArticles((articlesActuels) =>
+        articlesActuels.filter((article) => article.produitId !== produitId),
+      );
+    } catch (error) {
+      // Conserve les articles affichés lorsque la suppression échoue.
+      setErreurModification(
+        error instanceof Error
+          ? error.message
+          : "Impossible de joindre le serveur.",
+      );
+    } finally {
+      setModificationEnCours(false);
+    }
   }
 
   /**
-   * Modifie la quantité d'un article et recalcule son montant.
-   * La quantité doit être un entier positif.
+   * Enregistre la nouvelle quantité, puis recharge le panier.
    *
    * @param produitId - Identifiant du produit à modifier.
    * @param nouvelleQuantite - Nouvelle quantité souhaitée.
    * @author Amir
    */
-  function modifierQuantite(produitId: string, nouvelleQuantite: number) {
-    // Refuse les quantités invalides avant de modifier l'état.
-    if (!Number.isSafeInteger(nouvelleQuantite) || nouvelleQuantite < 1) {
+  async function modifierQuantite(produitId: string, nouvelleQuantite: number) {
+    // Refuse une quantité invalide ou une modification déjà en cours.
+    if (
+      modificationEnCours ||
+      !Number.isSafeInteger(nouvelleQuantite) ||
+      nouvelleQuantite < 1
+    ) {
       return;
     }
 
-    setArticles((articlesActuels) =>
-      articlesActuels.map((article) => {
-        if (article.produitId !== produitId) {
-          return article;
-        }
+    setErreurModification("");
+    setModificationEnCours(true);
 
-        // Calcule en centimes pour limiter les erreurs d'arrondi monétaires.
-        const prixEnCentimes =
-          article.prixUnitaire !== null
-            ? Math.round(article.prixUnitaire * 100)
-            : null;
+    // Permet de distinguer un échec d'enregistrement d'un échec d'affichage.
+    let quantiteEnregistree = false;
 
-        return {
-          // Copie l'article et remplace sa quantité ainsi que son montant.
-          ...article,
-          quantite: nouvelleQuantite,
-          totalLigne:
-            prixEnCentimes !== null
-              ? (prixEnCentimes * nouvelleQuantite) / 100
-              : null,
-        };
-      }),
-    );
+    try {
+      const reponse = await fetch(
+        `http://localhost:4000/api/panier/articles/${encodeURIComponent(produitId)}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          // Envoie la quantité finale souhaitée.
+          body: JSON.stringify({ quantite: nouvelleQuantite }),
+        },
+      );
+
+      const donnees = await reponse.json();
+
+      if (!reponse.ok) {
+        throw new Error(
+          donnees.message || "Impossible de modifier la quantité.",
+        );
+      }
+
+      quantiteEnregistree = true;
+
+      // Récupère les montants et la disponibilité calculés par le serveur.
+      const reponsePanier = await fetch("http://localhost:4000/api/panier", {
+        credentials: "include",
+      });
+
+      if (!reponsePanier.ok) {
+        throw new Error("Impossible de recharger le panier.");
+      }
+
+      const panierActualise = await reponsePanier.json();
+      setArticles(panierActualise.articles);
+    } catch (error) {
+      if (quantiteEnregistree) {
+        // L'enregistrement a réussi, mais l'affichage peut être périmé.
+        setErreurModification(
+          "La quantité a été enregistrée, mais le panier n'a pas pu être actualisé. Rechargez la page.",
+        );
+      } else {
+        setErreurModification(
+          error instanceof Error
+            ? error.message
+            : "Impossible de joindre le serveur.",
+        );
+      }
+    } finally {
+      setModificationEnCours(false);
+    }
   }
 
   // Additionne les montants des articles en centimes.
@@ -80,10 +215,31 @@ function PagePanier() {
     sousTotalEnCentimes += Math.round(article.totalLigne * 100);
   }
 
+  if (chargement) {
+    return <p className="container py-5">Chargement du panier…</p>;
+  }
+
+  if (erreur) {
+    return (
+      <div className="container py-5">
+        <p className="alert alert-danger" role="alert">
+          {erreur}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="page-panier">
       <div className="container py-5">
         <h1 className="mb-4">Le panier</h1>
+
+        {/* Conserve le panier visible pour permettre une nouvelle tentative. */}
+        {erreurModification && (
+          <p className="alert alert-danger" role="alert">
+            {erreurModification}
+          </p>
+        )}
 
         {/* Affiche un message si le panier est vide, sinon la liste des articles. */}
         {articles.length === 0 ? (
@@ -127,7 +283,7 @@ function PagePanier() {
                         type="button"
                         className="btn bouton-panier bouton-quantite"
                         aria-label={`Diminuer la quantité de ${article.nom}`}
-                        disabled={article.quantite <= 1}
+                        disabled={modificationEnCours || article.quantite <= 1}
                         onClick={() =>
                           modifierQuantite(
                             article.produitId,
@@ -146,6 +302,7 @@ function PagePanier() {
                         type="button"
                         className="btn bouton-panier bouton-quantite"
                         aria-label={`Augmenter la quantité de ${article.nom}`}
+                        disabled={modificationEnCours}
                         onClick={() =>
                           modifierQuantite(
                             article.produitId,
@@ -161,6 +318,7 @@ function PagePanier() {
                       <button
                         type="button"
                         className="btn bouton-panier bouton-retirer"
+                        disabled={modificationEnCours}
                         onClick={() => retirerArticle(article.produitId)}
                       >
                         Retirer

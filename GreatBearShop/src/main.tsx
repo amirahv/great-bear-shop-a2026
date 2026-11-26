@@ -17,9 +17,11 @@ import Clothing from "./pages/Clothing";
 import Maple from "./pages/Maple";
 import PageInscription from "./pages/PageInscription";
 import PagePanier from "./pages/PagePanier";
-import PageLivres from './pages/PageLivres'
-import PageConnexion from './pages/PageConnexion'
+import PageLivres from "./pages/PageLivres";
+import PageConnexion from "./pages/PageConnexion";
 import Games from "./pages/Games";
+import PageProfil from "./pages/PageProfil";
+import PageRetourPaiement from "./pages/PageRetourPaiement";
 
 // STRUCTURE COMMUNE À TOUTES LES PAGES
 function Layout() {
@@ -75,6 +77,14 @@ const router = createBrowserRouter([
       {
         path: "/games",
         element: <Games />,
+      },
+      {
+        path: "/profil",
+        element: <PageProfil />,
+      },
+      {
+        path: "/paiement/retour",
+        element: <PageRetourPaiement />,
       },
     ],
   },
