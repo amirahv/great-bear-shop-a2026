@@ -73,6 +73,14 @@ export async function creerSessionPaiement(
       return;
     }
 
+    // Les nouvelles commandes doivent avoir terminé leur réservation.
+    if (commande.etatReservation && commande.etatReservation !== "RESERVEE") {
+      res.status(409).json({
+        message: "Le stock de cette commande n'est pas entièrement réservé.",
+      });
+      return;
+    }
+
     if (
       commande.statut !== StatutCommande.RECU ||
       commande.paiement?.statut !== "EN_ATTENTE"

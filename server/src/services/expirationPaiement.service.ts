@@ -5,6 +5,7 @@ import type { Produit } from "../models/produit.model.js";
 import { StatutCommande } from "../types/statutCommande.type.js";
 import { Collection } from "../types/colllectionNoms.type.js";
 import { stripe } from "./stripe.service.js";
+import { libererProduit } from "./reservationStock.service.js";
 
 /**
  * Clôture une commande dont la session Stripe a expiré sans paiement.
@@ -90,6 +91,12 @@ export async function libererReservationExpiree(
   for (const [produitId, quantite] of quantites) {
     const identifiantProduit = new ObjectId(produitId);
 
+    // Utilise les traces de réservation pour les nouvelles commandes.
+    if (commande.etatReservation) {
+      await libererProduit(identifiant, identifiantProduit, quantite);
+      continue;
+    }
+
     // La quantité et le repère sont enregistrés ensemble sur le produit.
     const resultat = await produits.updateOne(
       {
@@ -128,6 +135,9 @@ export async function libererReservationExpiree(
     {
       $set: {
         "paiement.stockLibere": true,
+        ...(commande.etatReservation
+          ? { etatReservation: "LIBEREE" as const }
+          : {}),
         dateModification: new Date(),
       },
     },

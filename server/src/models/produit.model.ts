@@ -37,6 +37,8 @@ export interface Produit {
   actif: boolean;
   dateCreation: Date;
   dateModification: Date;
+  // Identifie les commandes dont le stock a déjà été retiré.
+  reservationsEffectuees?: ObjectId[];
   // Empêche de remettre deux fois le stock pour une même commande.
   reservationsLiberees?: ObjectId[];
 }

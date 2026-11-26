@@ -39,6 +39,8 @@ export interface Commande {
   utilisateurId: ObjectId;
   // Identifie une tentative d'achat pour retrouver sa commande lors d'un nouvel envoi (Amir).
   cleTentative?: string;
+  // Suit la préparation du stock et permet de reprendre une interruption (Amir).
+  etatReservation?: "EN_COURS" | "RESERVEE" | "LIBERATION_EN_COURS" | "LIBEREE";
   achat: ItemAchat[];
   destination: Adresse;
   statut: StatutCommande;

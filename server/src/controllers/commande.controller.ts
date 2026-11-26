@@ -1,4 +1,4 @@
-import { MongoServerError, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { getDb } from "../db/mongo.js";
 import { Request, Response } from "express";
 import { ItemAchat } from "../models/itemAchat.model.js";
@@ -9,10 +9,8 @@ import { StatutCommande } from "../types/statutCommande.type.js";
 import { Panier } from "../models/panier.model.js";
 import { Adresse } from "../types/adresse.type.js";
 import { AdresseType } from "../types/adresse-type.type.js";
-import {
-  remettreStock,
-  retirerStock,
-} from "../services/inventoryManagement.service.js";
+import { remettreStock } from "../services/inventoryManagement.service.js";
+import { preparerReservationCommande } from "../services/reservationCommande.service.js";
 
 /**
  * Developpement du controlleur pour la collection "commandes" de la base de données "GreatBearShop"
@@ -114,6 +112,55 @@ function validerAdresse(adresse: unknown): Adresse | null {
 }
 
 /**
+ * Reprend la réservation et vérifie la cohérence de la tentative.
+ *
+ * @author Amir
+ */
+async function repondreApresReservation(
+  commande: Commande,
+  destination: Adresse,
+  res: Response,
+  statutSucces: 200 | 201,
+): Promise<void> {
+  // Compare les adresses après leur normalisation.
+  if (
+    JSON.stringify(validerAdresse(commande.destination)) !==
+    JSON.stringify(destination)
+  ) {
+    res.status(409).json({
+      message: "Cette clé de tentative est déjà associée à une autre adresse.",
+    });
+    return;
+  }
+
+  if (!commande._id) {
+    throw new Error("Identifiant de commande manquant.");
+  }
+
+  const commandeActualisee = await preparerReservationCommande(commande._id);
+
+  if (
+    commandeActualisee.etatReservation &&
+    commandeActualisee.etatReservation !== "RESERVEE"
+  ) {
+    res.status(409).json({
+      message:
+        "La réservation de cette commande n'a pas abouti. Vérifiez votre panier avant une nouvelle tentative.",
+      commande: commandeActualisee,
+    });
+    return;
+  }
+
+  res.status(statutSucces).json({
+    message:
+      statutSucces === 201
+        ? "Commande créée avec succès"
+        : "Commande retrouvée",
+    commande: commandeActualisee,
+  });
+}
+
+/**
  * API qui permet de creer une nouvelle commande a partir d'un panier d'un utilisateur
  *
  * @param req token qui contient une version Utilisateur public
@@ -176,10 +223,7 @@ export async function creerCommande(
     });
 
     if (commandeExistante) {
-      res.status(200).json({
-        message: "Commande déjà créée pour cette tentative",
-        commande: commandeExistante,
-      });
+      await repondreApresReservation(commandeExistante, destination, res, 200);
       return;
     }
     /////////////////////////////////////////////////////////////////////////////
@@ -256,6 +300,8 @@ export async function creerCommande(
 
     // nouvelle commande construite
     const nouvelleCommande: Commande = {
+      _id: new ObjectId(),
+      etatReservation: "EN_COURS",
       utilisateurId,
       cleTentative,
       achat,
@@ -270,61 +316,34 @@ export async function creerCommande(
       dateAchat: maintenant,
       dateModification: maintenant,
     };
-
-    // Réserve les quantités pour cette commande en attente de paiement.
-    // La confirmation du paiement ne devra pas retirer ces quantités à nouveau.
-    const retrait = await retirerStock(nouvelleCommande.achat);
-
-    // utilisation du type ResultatRetraitStock
-    if (!retrait.success) {
-      res.status(409).json({
-        message: `Stock insuffisant pour le produit : ${retrait.produitId.toString()}`,
-      });
-
-      return;
-    }
-
-    // p4 Amir ///////////////////////////////////////////////////////////////////
-    let resultat;
+    // Enregistre la commande avant toute réservation de stock.
+    let commandeEnregistree: Commande = nouvelleCommande;
+    let statutSucces: 200 | 201 = 201;
 
     try {
-      resultat = await commandes.insertOne(nouvelleCommande);
+      await commandes.insertOne(nouvelleCommande);
     } catch (error) {
-      // Annule le retrait effectué par cette requête.
-      await remettreStock(nouvelleCommande.achat);
+      // Une réponse peut être perdue après une insertion réussie.
+      // Retrouve aussi une commande créée par une requête simultanée.
+      const dejaEnregistree = await commandes.findOne({
+        utilisateurId,
+        cleTentative,
+      });
 
-      // Une requête simultanée peut avoir enregistré cette tentative
-      // après notre première recherche.
-      if (
-        error instanceof MongoServerError &&
-        error.code === 11000 &&
-        error.keyPattern?.cleTentative === 1
-      ) {
-        const commandeDejaCreee = await commandes.findOne({
-          utilisateurId,
-          cleTentative,
-        });
-
-        if (commandeDejaCreee) {
-          res.status(200).json({
-            message: "Commande déjà créée pour cette tentative",
-            commande: commandeDejaCreee,
-          });
-          return;
-        }
+      if (!dejaEnregistree) {
+        throw error;
       }
 
-      throw error;
+      commandeEnregistree = dejaEnregistree;
+      statutSucces = 200;
     }
-    /////////////////////////////////////////////////////////////////////////////////
 
-    // Conserve le panier pendant le paiement.
-    // Les quantités achetées seront retirées après confirmation par Stripe.
-
-    res.status(201).json({
-      message: "Commande cree avec succes",
-      commande: { ...nouvelleCommande, _id: resultat.insertedId },
-    });
+    await repondreApresReservation(
+      commandeEnregistree,
+      destination,
+      res,
+      statutSucces,
+    );
   } catch (error) {
     console.error(`[${new Date().toISOString()}] creerCommande() ->`, error);
 
