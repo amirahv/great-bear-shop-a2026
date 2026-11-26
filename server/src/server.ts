@@ -35,6 +35,20 @@ async function demarrerServeur(): Promise<void> {
       // {utilisateurId: 1} signifie que l'index est créé sur le champ 'utilisateurId' dans l'ordre croissant.
       .createIndex({ utilisateurId: 1 }, { unique: true });
 
+    // Autorise une seule commande par utilisateur et par tentative d'achat (Amir).
+    await getDb()
+      .collection(Collection.COMMANDES)
+      .createIndex(
+        { utilisateurId: 1, cleTentative: 1 },
+        {
+          name: "commande_unique_par_tentative",
+          unique: true,
+          partialFilterExpression: {
+            cleTentative: { $type: "string" },
+          },
+        },
+      );
+
     const app = express();
 
     // Autorise les requêtes provenant du frontend.

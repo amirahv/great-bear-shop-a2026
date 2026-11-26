@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb";
+import { MongoServerError, ObjectId } from "mongodb";
 import { getDb } from "../db/mongo.js";
 import { Request, Response } from "express";
 import { ItemAchat } from "../models/itemAchat.model.js";
@@ -153,6 +153,37 @@ export async function creerCommande(
     // acces a notre DB
     const db = getDb();
 
+    // La même tentative d'achat doit conserver la même clé (Amir) p4//////////////////////
+    const cleTentative: unknown = req.body?.cleTentative;
+
+    if (
+      typeof cleTentative !== "string" ||
+      !/^[A-Za-z0-9_-]{8,100}$/.test(cleTentative)
+    ) {
+      res.status(400).json({
+        message:
+          "La clé de tentative doit contenir entre 8 et 100 caractères : lettres, chiffres, tirets ou soulignements.",
+      });
+      return;
+    }
+
+    const commandes = db.collection<Commande>(Collection.COMMANDES);
+
+    // Recherche avant toute modification du stock.
+    const commandeExistante = await commandes.findOne({
+      utilisateurId,
+      cleTentative,
+    });
+
+    if (commandeExistante) {
+      res.status(200).json({
+        message: "Commande déjà créée pour cette tentative",
+        commande: commandeExistante,
+      });
+      return;
+    }
+    /////////////////////////////////////////////////////////////////////////////
+
     // on recupere le panier pour un utilisateur
     const panier = await db
       .collection<Panier>(Collection.PANIERS)
@@ -226,6 +257,7 @@ export async function creerCommande(
     // nouvelle commande construite
     const nouvelleCommande: Commande = {
       utilisateurId,
+      cleTentative,
       achat,
       destination,
       statut: StatutCommande.RECU,
@@ -252,17 +284,39 @@ export async function creerCommande(
       return;
     }
 
+    // p4 Amir ///////////////////////////////////////////////////////////////////
     let resultat;
+
     try {
-      // nouvelle commande ajoutee a la base de donnee
-      resultat = await db
-        .collection<Commande>(Collection.COMMANDES)
-        .insertOne(nouvelleCommande);
+      resultat = await commandes.insertOne(nouvelleCommande);
     } catch (error) {
+      // Annule le retrait effectué par cette requête.
       await remettreStock(nouvelleCommande.achat);
+
+      // Une requête simultanée peut avoir enregistré cette tentative
+      // après notre première recherche.
+      if (
+        error instanceof MongoServerError &&
+        error.code === 11000 &&
+        error.keyPattern?.cleTentative === 1
+      ) {
+        const commandeDejaCreee = await commandes.findOne({
+          utilisateurId,
+          cleTentative,
+        });
+
+        if (commandeDejaCreee) {
+          res.status(200).json({
+            message: "Commande déjà créée pour cette tentative",
+            commande: commandeDejaCreee,
+          });
+          return;
+        }
+      }
 
       throw error;
     }
+    /////////////////////////////////////////////////////////////////////////////////
 
     // Conserve le panier pendant le paiement.
     // Les quantités achetées seront retirées après confirmation par Stripe.

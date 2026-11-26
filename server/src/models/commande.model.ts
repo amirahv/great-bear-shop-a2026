@@ -37,6 +37,8 @@ export interface PaiementCommande {
 export interface Commande {
   _id?: ObjectId;
   utilisateurId: ObjectId;
+  // Identifie une tentative d'achat pour retrouver sa commande lors d'un nouvel envoi (Amir).
+  cleTentative?: string;
   achat: ItemAchat[];
   destination: Adresse;
   statut: StatutCommande;
