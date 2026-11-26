@@ -7,6 +7,9 @@ import {
   obtenirProduitParId,
   obtenirProduits,
 } from "../controllers/produit.controller.js";
+import { authenticateToken } from "../middleware/jwt.middleware.js";
+import { requireRole } from "../middleware/role.middleware.js";
+import { UtilisateurRole } from "../types/utilisateur-role.type.js";
 
 const produitRouter = Router();
 
@@ -27,29 +30,50 @@ produitRouter.get("/:id", obtenirProduitParId);
 /**
  * POST /api/produits
  *
- * Crée un nouveau produit.
+ * Crée un nouveau produit par un administrateur. Le produit est actif par défaut.
  */
-produitRouter.post("/", ajouterProduit);
+produitRouter.post(
+  "/",
+  authenticateToken,
+  requireRole(UtilisateurRole.ADMIN),
+  ajouterProduit,
+);
 
 /**
  * PUT /api/produits/:id
  *
- * Modifie complètement un produit existant.
+ * Modifie complètement un produit existant par un administrateur.
  */
-produitRouter.put("/:id", modifierProduit);
+produitRouter.put(
+  "/:id",
+  authenticateToken,
+  requireRole(UtilisateurRole.ADMIN),
+  modifierProduit,
+);
 
 /**
  * DELETE /api/produits/:id
  *
- * Désactive un produit sans le supprimer définitivement de MongoDB (suppression logique).
+ * Désactive un produit sans le supprimer définitivement de MongoDB (suppression logique)
+ * par un administrateur.
  */
-produitRouter.delete("/:id", supprimerProduit);
+produitRouter.delete(
+  "/:id",
+  authenticateToken,
+  requireRole(UtilisateurRole.ADMIN),
+  supprimerProduit,
+);
 
 /**
  * PATCH /api/produits/:id/reactiver
  *
- * Réactive un produit précédemment désactivé.
+ * Réactive un produit précédemment désactivé par un administrateur.
  */
-produitRouter.patch("/:id/reactiver", reactiverProduit);
+produitRouter.patch(
+  "/:id/reactiver",
+  authenticateToken,
+  requireRole(UtilisateurRole.ADMIN),
+  reactiverProduit,
+);
 
 export default produitRouter;
