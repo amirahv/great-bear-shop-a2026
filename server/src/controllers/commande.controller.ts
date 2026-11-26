@@ -582,35 +582,58 @@ export async function actualiserStatutCommande(
  *
  * @author Martin Ore Rodriguez
  */
+/**
+ * Supprime seulement une ancienne commande annulée, sans suivi de paiement.
+ * Conserve les commandes dont la trace sert aux réservations et aux tentatives.
+ *
+ * @author Amir
+ */
 export async function supprimerCommande(
   req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const commandeId = req.params.id;
+    const commandeId: unknown = req.params.id;
 
-    if (!ObjectId.isValid(commandeId.toString())) {
+    if (typeof commandeId !== "string" || !ObjectId.isValid(commandeId)) {
       res.status(400).json({
         message: "Identifiant invalide",
       });
       return;
     }
 
-    const resultat = await getDb()
-      .collection<Commande>(Collection.COMMANDES)
-      .deleteOne({ _id: new ObjectId(commandeId.toString()) });
+    const _id = new ObjectId(commandeId);
+    const commandes = getDb().collection<Commande>(Collection.COMMANDES);
 
-    // aucune commande trouvee pour la supprimer
-    if (resultat.deletedCount === 0) {
-      res.status(404).json({
-        message: "Commande introuvable",
+    // Vérifie les conditions au moment même de la suppression.
+    const resultat = await commandes.deleteOne({
+      _id,
+      statut: StatutCommande.ANNULEE,
+      paiement: { $exists: false },
+      cleTentative: { $exists: false },
+      etatReservation: { $exists: false },
+    });
+
+    if (resultat.deletedCount === 1) {
+      res.status(200).json({
+        message: "Commande supprimée avec succès",
       });
-
       return;
     }
 
-    res.status(200).json({
-      message: "Commande supprimee avec succes",
+    // Distingue une commande protégée d'une commande inexistante.
+    const existe = await commandes.findOne({ _id }, { projection: { _id: 1 } });
+
+    if (!existe) {
+      res.status(404).json({
+        message: "Commande introuvable",
+      });
+      return;
+    }
+
+    res.status(409).json({
+      message:
+        "Cette commande est encore active ou doit être conservée pour le suivi du paiement et des réservations.",
     });
   } catch (error) {
     console.error(
