@@ -45,3 +45,13 @@ export async function obtenirProduits(): Promise<ProduitAPI[]> {
 
   return Array.isArray(data) ? data : data.value ?? [];
 }
+
+export async function obtenirProduitParId(id: string): Promise<ProduitAPI> {
+  const response = await fetch(`${API_URL}/api/produits/${id}`);
+
+  if (!response.ok) {
+    throw new Error("Impossible de récupérer les détails du produit");
+  }
+
+  return await response.json();
+}

@@ -1,43 +1,42 @@
+
 type Product = {
-  id: number
-  name: string
-  brand: string
-  category: string
-  gender: string
-  price: number
-  image: string
-}
+  id: number;
+  productId: string;
+  name: string;
+  brand: string;
+  category: string;
+  gender: string;
+  price: number;
+  image: string;
+};
 
 type ProductCardProps = {
-  product: Product
-}
+  product: Product;
+  onDetails: (id: string) => void;
+};
 
-function ProductCard({ product }: ProductCardProps) {
+function ProductCard({ product, onDetails }: ProductCardProps) {
   return (
     <div className="card h-100 shadow-sm border-0">
-      
-      {/* Image du produit */}
       <div
         style={{
-          height: '300px',
-          backgroundColor: '#f5f5f5',
-          overflow: 'hidden',
+          height: "300px",
+          backgroundColor: "#f5f5f5",
+          overflow: "hidden",
         }}
       >
         <img
           src={product.image}
           alt={product.name}
           style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
           }}
         />
       </div>
 
-      {/* Informations du produit */}
       <div className="card-body d-flex flex-column">
-        
         <p className="text-muted mb-1 small">
           {product.brand}
         </p>
@@ -46,7 +45,7 @@ function ProductCard({ product }: ProductCardProps) {
           {product.name}
         </h5>
 
-        <p className="card-text text-muted mb-2">
+        <p className="text-muted mb-2">
           {product.category}
         </p>
 
@@ -54,13 +53,15 @@ function ProductCard({ product }: ProductCardProps) {
           {product.price.toFixed(2)} $
         </p>
 
-        <button className="btn btn-dark w-100 mt-auto">
-          Ajouter au panier
+        <button
+          className="btn btn-dark w-100 mt-auto"
+          onClick={() => onDetails(product.productId)}
+        >
+          Voir les détails
         </button>
-
       </div>
     </div>
-  )
+  );
 }
 
-export default ProductCard
+export default ProductCard;

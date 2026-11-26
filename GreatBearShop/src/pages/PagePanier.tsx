@@ -1,28 +1,41 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import "./PagePanier.css";
-import panierTemporaire from "../data/panierTemporaire";
+import panierTemporaire, {
+  type ArticlePanierDetaille,
+} from "../data/panierTemporaire";
+
+const CLE_PANIER = "greatBearPanier";
 
 /**
  * Affiche les articles du panier et permet de modifier leurs quantités
  * ou de les retirer.
- *
- * Le panier est initialisé avec des données temporaires.
- * Les modifications restent en mémoire et sont perdues au rechargement.
- *
- * @author Amir
  */
 function PagePanier() {
-  // Conserve les articles affichés et permet d'actualiser l'interface.
-  const [articles, setArticles] = useState(panierTemporaire);
+  // Récupère le panier sauvegardé ou utilise les articles temporaires.
+  const [articles, setArticles] = useState<ArticlePanierDetaille[]>(() => {
+    const sauvegarde = localStorage.getItem(CLE_PANIER);
+
+    if (sauvegarde !== null) {
+      try {
+        return JSON.parse(sauvegarde) as ArticlePanierDetaille[];
+      } catch {
+        return panierTemporaire;
+      }
+    }
+
+    return panierTemporaire;
+  });
+
+  // Sauvegarde automatiquement chaque modification du panier.
+  useEffect(() => {
+    localStorage.setItem(CLE_PANIER, JSON.stringify(articles));
+  }, [articles]);
 
   /**
-   * Retire un article du panier affiché.
-   *
-   * @param produitId - Identifiant du produit à retirer.
-   * @author Amir
+   * Retire un article du panier.
    */
   function retirerArticle(produitId: string) {
-    // Crée une nouvelle liste contenant tous les autres articles.
     setArticles((articlesActuels) =>
       articlesActuels.filter((article) => article.produitId !== produitId),
     );
@@ -30,14 +43,8 @@ function PagePanier() {
 
   /**
    * Modifie la quantité d'un article et recalcule son montant.
-   * La quantité doit être un entier positif.
-   *
-   * @param produitId - Identifiant du produit à modifier.
-   * @param nouvelleQuantite - Nouvelle quantité souhaitée.
-   * @author Amir
    */
   function modifierQuantite(produitId: string, nouvelleQuantite: number) {
-    // Refuse les quantités invalides avant de modifier l'état.
     if (!Number.isSafeInteger(nouvelleQuantite) || nouvelleQuantite < 1) {
       return;
     }
@@ -48,14 +55,12 @@ function PagePanier() {
           return article;
         }
 
-        // Calcule en centimes pour limiter les erreurs d'arrondi monétaires.
         const prixEnCentimes =
           article.prixUnitaire !== null
             ? Math.round(article.prixUnitaire * 100)
             : null;
 
         return {
-          // Copie l'article et remplace sa quantité ainsi que son montant.
           ...article,
           quantite: nouvelleQuantite,
           totalLigne:
@@ -67,8 +72,7 @@ function PagePanier() {
     );
   }
 
-  // Additionne les montants des articles en centimes.
-  // Si un montant manque, le sous-total ne peut pas être calculé.
+  // Calcule le sous-total global en centimes.
   let sousTotalEnCentimes: number | null = 0;
 
   for (const article of articles) {
@@ -85,7 +89,6 @@ function PagePanier() {
       <div className="container py-5">
         <h1 className="mb-4">Le panier</h1>
 
-        {/* Affiche un message si le panier est vide, sinon la liste des articles. */}
         {articles.length === 0 ? (
           <p>Votre panier est vide.</p>
         ) : (
@@ -119,7 +122,6 @@ function PagePanier() {
                         : "Prix indisponible"}
                     </p>
 
-                    {/* Quantité et boutons de modification du panier. */}
                     <div className="d-flex align-items-center gap-2">
                       <span>Quantité :</span>
 
@@ -187,7 +189,7 @@ function PagePanier() {
             </div>
           ))
         )}
-        {/* Sous-total global, affiché uniquement si le panier contient des articles. */}
+
         {articles.length > 0 && (
           <div className="border-top pt-3 mt-4 text-end">
             <p className="fs-5 fw-bold mb-1">

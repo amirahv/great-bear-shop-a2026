@@ -1,11 +1,14 @@
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import mapleProducts from "../data/mapleProducts";
 import MapleProductCard from "../components/MapleProductCard";
 import { obtenirProduits } from "../services/api";
 import type { ProduitAPI } from "../services/api";
 
 function Maple() {
+  const navigate = useNavigate();
+
   const [category, setCategory] = useState("Tous");
   const [apiProducts, setApiProducts] = useState<ProduitAPI[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,9 +17,7 @@ function Maple() {
   useEffect(() => {
     obtenirProduits()
       .then((data) => {
-        setApiProducts(
-          data.filter((p) => p.categorie === "sirop-erable")
-        );
+        setApiProducts(data.filter((p) => p.categorie === "sirop-erable"));
       })
       .catch(() => setError("Impossible de charger les produits."))
       .finally(() => setLoading(false));
@@ -39,6 +40,7 @@ function Maple() {
 
     return {
       id: index,
+      productId: product._id,
       name: product.nom,
       brand,
       category: productCategory,
@@ -62,9 +64,7 @@ function Maple() {
             key={option}
             type="button"
             className={
-              category === option
-                ? "btn btn-dark"
-                : "btn btn-outline-dark"
+              category === option ? "btn btn-dark" : "btn btn-outline-dark"
             }
             onClick={() => setCategory(option)}
           >
@@ -80,7 +80,10 @@ function Maple() {
         <div className="row g-4">
           {filteredProducts.map((product) => (
             <div className="col-12 col-sm-6 col-lg-3" key={product.id}>
-              <MapleProductCard product={product} />
+              <MapleProductCard
+                product={product}
+                onDetails={(id) => navigate(`/produit/${id}`)}
+              />
             </div>
           ))}
         </div>

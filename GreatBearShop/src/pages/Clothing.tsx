@@ -1,4 +1,5 @@
 
+import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import products from "../data/products";
 import ProductCard from "../components/ProductCard";
@@ -7,10 +8,16 @@ import type { ProduitAPI } from "../services/api";
 import "./Clothing.css";
 
 function Clothing() {
+  const navigate = useNavigate();
+
   const [gender, setGender] = useState("Tous");
   const [apiProducts, setApiProducts] = useState<ProduitAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const handleDetails = (id: string) => {
+    navigate(`/produit/${id}`);
+  };
 
   useEffect(() => {
     obtenirProduits()
@@ -36,6 +43,7 @@ function Clothing() {
 
     return {
       id: index,
+      productId: product._id,
       name: product.nom,
       brand,
       category: product.description?.split(" • ")[0] ?? "Vêtements",
@@ -85,11 +93,11 @@ function Clothing() {
         {!loading && !error && (
           <div className="row g-4">
             {filteredProducts.map((product) => (
-              <div
-                className="col-12 col-sm-6 col-lg-4"
-                key={product.id}
-              >
-                <ProductCard product={product} />
+              <div className="col-12 col-sm-6 col-lg-4" key={product.id}>
+                <ProductCard
+                  product={product}
+                  onDetails={handleDetails}
+                />
               </div>
             ))}
           </div>

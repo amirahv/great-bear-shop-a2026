@@ -1,75 +1,65 @@
+
 type Livre = {
-  id: number
-  titre: string
-  auteur: string
-  maison_edition: string
-  annee_publication: number
-  nombre_pages: number
-  prix: number
-  image: string
-}
+  id: number;
+  productId: string;
+  titre: string;
+  auteur: string;
+  maison_edition: string;
+  annee_publication: number;
+  nombre_pages: number;
+  prix: number;
+  image: string;
+};
 
 type ProductCardProps = {
-  livre: Livre
-}
+  livre: Livre;
+  onDetails: (id: string) => void;
+};
 
-function CarteLivre({ livre }: ProductCardProps) {
+function CarteLivre({ livre, onDetails }: ProductCardProps) {
   return (
     <div className="card h-100 d-flex flex-column">
-
-      {/* IMAGE DU LIVRE */}
       <div
         style={{
-          height: '250px',
-          backgroundColor: '#f3f3f3',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          height: "250px",
+          backgroundColor: "#f3f3f3",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         <img
           src={livre.image}
           alt={livre.titre}
           style={{
-            maxHeight: '100%',
-            maxWidth: '100%',
-            objectFit: 'contain',
+            maxHeight: "100%",
+            maxWidth: "100%",
+            objectFit: "contain",
           }}
         />
       </div>
 
       <div className="card-body d-flex flex-column">
-        <p className="text-muted mb-1">
-          {livre.auteur}
+        <p className="text-muted mb-1">{livre.auteur}</p>
+        <h5 className="card-title">{livre.titre}</h5>
+        <p className="text-muted">
+          Maison d'édition : {livre.maison_edition}
         </p>
-
-        <h5 className="card-title">
-          {livre.titre}
-        </h5>
-
-        <p className="card-text text-muted">
-          Maison d'édition: {livre.maison_edition}
+        <p className="text-muted">
+          Année de publication : {livre.annee_publication}
         </p>
+        <p className="text-muted">{livre.nombre_pages} pages</p>
+        <p className="fw-bold">Prix : {livre.prix.toFixed(2)} $</p>
 
-        <p className="card-text text-muted">
-          Année de publication: {livre.annee_publication}
-        </p>
-
-        <p className="card-text text-muted">
-          {livre.nombre_pages} pages
-        </p>
-
-        <p className="fw-bold">
-          Prix: {livre.prix.toFixed(2)} $
-        </p>
-
-        <button className="btn btn-dark w-100 mt-auto">
-          Ajouter au panier
+        <button
+          className="btn btn-dark w-100 mt-auto"
+          onClick={() => onDetails(livre.productId)}
+        >
+          Voir les détails
         </button>
       </div>
-
     </div>
-  )
+  );
 }
 
-export default CarteLivre
+export default CarteLivre;

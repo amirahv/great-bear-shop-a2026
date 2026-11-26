@@ -1,7 +1,11 @@
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-
-import { createBrowserRouter, RouterProvider, Outlet } from "react-router";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Outlet,
+} from "react-router";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -17,23 +21,21 @@ import Clothing from "./pages/Clothing";
 import Maple from "./pages/Maple";
 import PageInscription from "./pages/PageInscription";
 import PagePanier from "./pages/PagePanier";
-import PageLivres from './pages/PageLivres'
-import PageConnexion from './pages/PageConnexion'
+import PageLivres from "./pages/PageLivres";
+import PageConnexion from "./pages/PageConnexion";
 import Games from "./pages/Games";
+import ProductDetails from "./pages/ProductDetails";
 
 // STRUCTURE COMMUNE À TOUTES LES PAGES
 function Layout() {
   return (
     <div className="shop-layout">
-      {/* MENU EN HAUT */}
       <Navbar />
 
-      {/* CONTENU DE LA PAGE */}
       <main className="shop-main">
         <Outlet />
       </main>
 
-      {/* FOOTER EN BAS */}
       <Footer />
     </div>
   );
@@ -59,6 +61,10 @@ const router = createBrowserRouter([
       {
         path: "/livres",
         element: <PageLivres />,
+      },
+      {
+        path: "/produit/:id",
+        element: <ProductDetails />,
       },
       {
         path: "/connexion",
