@@ -69,20 +69,45 @@ async function retrouverSession(
 export async function recupererPaiementsStripe(): Promise<void> {
   const commandes = getDb().collection<Commande>(Collection.COMMANDES);
 
-  const enAttente = await commandes
+  const aTraiter = await commandes
     .find({
-      statut: StatutCommande.RECU,
-      "paiement.statut": "EN_ATTENTE",
-      "paiement.stripeDateExpiration": { $type: "date" },
       $or: [
-        { etatReservation: "RESERVEE" },
-        { etatReservation: { $exists: false } },
+        {
+          // Paiements encore en attente.
+          statut: StatutCommande.RECU,
+          "paiement.statut": "EN_ATTENTE",
+          "paiement.stripeDateExpiration": { $type: "date" },
+          $or: [
+            { etatReservation: "RESERVEE" },
+            { etatReservation: { $exists: false } },
+          ],
+        },
+        {
+          // Paiement enregistré, mais panier pas encore terminé.
+          statut: { $ne: StatutCommande.ANNULEE },
+          "paiement.statut": "PAYE",
+          "paiement.panierActualise": { $ne: true },
+          "paiement.stripeSessionId": {
+            $type: "string",
+            $ne: "",
+          },
+        },
       ],
     })
     .toArray();
 
-  for (const commande of enAttente) {
+  for (const commande of aTraiter) {
     try {
+      const paiement = commande.paiement;
+
+      if (paiement?.statut === "PAYE" && paiement.stripeSessionId) {
+        // Termine le panier en conservant la date de paiement.
+        await confirmerPaiement(
+          paiement.stripeSessionId,
+          paiement.datePaiement ?? new Date(),
+        );
+        continue;
+      }
       const session = await retrouverSession(commande);
 
       if (!session) {
