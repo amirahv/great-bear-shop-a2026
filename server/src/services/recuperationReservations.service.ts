@@ -5,6 +5,7 @@ import { StatutCommande } from "../types/statutCommande.type.js";
 import { preparerReservationCommande } from "./reservationCommande.service.js";
 import { libererReservationExpiree } from "./expirationPaiement.service.js";
 import { expirerCommandesSansPaiement } from "./expirationSansPaiement.service.js";
+import { recupererPaiementsStripe } from "./recuperationStripe.service.js";
 
 let recuperationEnCours = false;
 let minuteur: ReturnType<typeof setInterval> | undefined;
@@ -83,6 +84,9 @@ export async function recupererReservationsInterrompues(): Promise<void> {
         `[Réservations] ${commandes.length} commande(s) examinée(s).`,
       );
     }
+
+    // Retrouve les sessions manquantes et vérifie les paiements en attente.
+    await recupererPaiementsStripe();
   } catch (error) {
     console.error(
       "Impossible de rechercher les réservations interrompues :",
