@@ -325,15 +325,33 @@ export async function updateUtilisateurParId(
   res: Response,
 ): Promise<void> {
   try {
+    // P3 : chaque client doit pouvoir modifier uniquement son propre compte (Amir).
+    const utilisateurId = req.user?._id;
+
+    if (!utilisateurId) {
+      res.status(401).json({
+        message: "Vous devez être connecté pour modifier votre compte.",
+      });
+      return;
+    }
+
     const id = req.params.id;
 
-    // verification de l'id pour s'assurer qu'il est un ObjectId valide
-    if (!ObjectId.isValid(id.toString())) {
+    if (typeof id !== "string" || !ObjectId.isValid(id)) {
       res.status(400).json({
         message: "Identifiant non valide",
       });
       return;
     }
+
+    // Compare le compte demandé à celui identifié par le cookie de connexion.
+    if (!utilisateurId.equals(new ObjectId(id))) {
+      res.status(403).json({
+        message: "Vous pouvez modifier uniquement votre propre compte.",
+      });
+      return;
+    }
+    ///////////////////////////////////////////////////////////////////////////////
 
     const { nom, prenom, courriel, motDePasse, adresse } = req.body as Record<
       string,
@@ -406,7 +424,10 @@ export async function updateUtilisateurParId(
       return;
     }
 
-    const utilisateur = req.params.id; // utilisateur a mettre a jour
+    // P3 : chaque client doit pouvoir modifier uniquement son propre compte (Amir).
+    // Utilise l'identifiant de l'utilisateur authentifié pour les opérations en base.
+    const utilisateur = utilisateurId;
+    ///////////////////////////////////////////////////////////////////////////////////
     const collectionUtilisateur = getDb().collection<Utilisateur>(
       Collection.UTILISATEURS,
     );
