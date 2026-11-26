@@ -1,92 +1,94 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import mapleProducts from "../data/mapleProducts";
 import MapleProductCard from "../components/MapleProductCard";
+import { obtenirProduits } from "../services/api";
+import type { ProduitAPI } from "../services/api";
 
 function Maple() {
   const [category, setCategory] = useState("Tous");
+  const [apiProducts, setApiProducts] = useState<ProduitAPI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    obtenirProduits()
+      .then((data) => {
+        setApiProducts(
+          data.filter((p) => p.categorie === "sirop-erable")
+        );
+      })
+      .catch(() => setError("Impossible de charger les produits."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const products = apiProducts.map((product, index) => {
+    const brand = product.caracteristiques.marque ?? "";
+    const productCategory =
+      product.caracteristiques.categorieSirop ??
+      (product.caracteristiques.biologique ? "Biologique" : "Sirop pur");
+
+    const normalize = (value: string) =>
+      value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    const localProduct = mapleProducts.find(
+      (p) =>
+        p.brand === brand &&
+        normalize(p.name) === normalize(product.nom)
+    );
+
+    return {
+      id: index,
+      name: product.nom,
+      brand,
+      category: productCategory,
+      price: product.prix,
+      image: localProduct?.image ?? mapleProducts[index]?.image ?? "",
+    };
+  });
 
   const filteredProducts =
     category === "Tous"
-      ? mapleProducts
-      : mapleProducts.filter(
-          (product) => product.category === category
-        );
+      ? products
+      : products.filter((p) => p.category === category);
 
   return (
     <div className="container py-5">
+      <h1 className="text-center mb-4">Sirop d'érable</h1>
 
-      {/* Titre */}
-      <div className="text-center mb-4">
-        <h1 className="fw-bold text-dark">
-          Sirop d'érable
-        </h1>
-
-        <p className="text-muted">
-          Découvrez une sélection de produits d'érable canadiens
-        </p>
-      </div>
-
-      {/* Filtres */}
-      <div className="d-flex justify-content-center gap-2 flex-wrap mb-5">
-
-        <button
-          className={
-            category === "Tous"
-              ? "btn btn-dark"
-              : "btn btn-outline-dark"
-          }
-          onClick={() => setCategory("Tous")}
-        >
-          Tous
-        </button>
-
-        <button
-          className={
-            category === "Sirop pur"
-              ? "btn btn-dark"
-              : "btn btn-outline-dark"
-          }
-          onClick={() => setCategory("Sirop pur")}
-        >
-          Sirop pur
-        </button>
-
-        <button
-          className={
-            category === "Biologique"
-              ? "btn btn-dark"
-              : "btn btn-outline-dark"
-          }
-          onClick={() => setCategory("Biologique")}
-        >
-          Biologique
-        </button>
-
-        <button
-          className={
-            category === "Coffrets"
-              ? "btn btn-dark"
-              : "btn btn-outline-dark"
-          }
-          onClick={() => setCategory("Coffrets")}
-        >
-          Coffrets
-        </button>
-
-      </div>
-
-      {/* Produits */}
-      <div className="row g-4">
-        {filteredProducts.map((product) => (
-          <div
-            className="col-12 col-sm-6 col-lg-4 col-xl-3"
-            key={product.id}
+      <div className="d-flex justify-content-center flex-wrap gap-2 mb-4">
+        {["Tous", "Sirop pur", "Biologique", "Coffrets"].map((option) => (
+          <button
+            key={option}
+            type="button"
+            className={
+              category === option
+                ? "btn btn-dark"
+                : "btn btn-outline-dark"
+            }
+            onClick={() => setCategory(option)}
           >
-            <MapleProductCard product={product} />
-          </div>
+            {option}
+          </button>
         ))}
       </div>
 
+      {loading && <p className="text-center">Chargement des produits...</p>}
+      {error && <p className="text-danger text-center">{error}</p>}
+
+      {!loading && !error && (
+        <div className="row g-4">
+          {filteredProducts.map((product) => (
+            <div className="col-12 col-sm-6 col-lg-3" key={product.id}>
+              <MapleProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!loading && !error && filteredProducts.length === 0 && (
+        <p className="text-center">Aucun produit disponible.</p>
+      )}
     </div>
   );
 }
