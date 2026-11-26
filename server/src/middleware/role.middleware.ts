@@ -14,6 +14,15 @@ import { UtilisateurRole } from "../types/utilisateur-role.type.js";
  *
  * @author Martin Ore Rodriguez
  */
+/**
+ * P1: Corriger le contrôle des rôles.
+ * Le changement essentiel est le return; après le refus 403.
+ * Sans lui, le programme poursuivait son exécution jusqu’à next().
+ *
+ * Autorise l'accès uniquement aux utilisateurs possédant un rôle permis.
+ *
+ * @author Amir
+ */
 export function requireRole(...rolesAutorises: UtilisateurRole[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
@@ -22,12 +31,17 @@ export function requireRole(...rolesAutorises: UtilisateurRole[]) {
       });
       return;
     }
+
     if (!rolesAutorises.includes(req.user.role)) {
       res.status(403).json({
-        mesage: "Accès refusé",
+        message: "Accès refusé",
       });
+
+      // Arrête le traitement : le contrôleur ne doit pas être exécuté.
+      return;
     }
 
+    // Continue uniquement si l'utilisateur possède un rôle autorisé.
     next();
   };
 }
