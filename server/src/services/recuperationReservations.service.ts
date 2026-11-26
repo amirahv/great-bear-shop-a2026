@@ -4,6 +4,7 @@ import { Collection } from "../types/colllectionNoms.type.js";
 import { StatutCommande } from "../types/statutCommande.type.js";
 import { preparerReservationCommande } from "./reservationCommande.service.js";
 import { libererReservationExpiree } from "./expirationPaiement.service.js";
+import { expirerCommandesSansPaiement } from "./expirationSansPaiement.service.js";
 
 let recuperationEnCours = false;
 let minuteur: ReturnType<typeof setInterval> | undefined;
@@ -22,6 +23,9 @@ export async function recupererReservationsInterrompues(): Promise<void> {
   recuperationEnCours = true;
 
   try {
+    // Clôture d'abord les commandes abandonnées trop anciennes.
+    await expirerCommandesSansPaiement();
+
     const commandes = await getDb()
       .collection<Commande>(Collection.COMMANDES)
       .find(
