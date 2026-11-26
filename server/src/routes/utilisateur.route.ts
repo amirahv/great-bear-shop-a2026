@@ -67,13 +67,13 @@ utilisateurRouter.get(
 );
 
 /**
- * PUT /api/utilisateurs/actualiser/:id
+ * PUT /api/utilisateurs/actualiser
  *
  * Met à jour un utilisateur spécifique trouvé par son identifiant MongoDB
  * L'utilisateur doit etre connecte et doit etre un CLIENT pour utiliser l'API
  */
 utilisateurRouter.put(
-  "/actualiser/:id",
+  "/actualiser",
   authenticateToken,
   requireRole(UtilisateurRole.CLIENT),
   updateUtilisateurParId,

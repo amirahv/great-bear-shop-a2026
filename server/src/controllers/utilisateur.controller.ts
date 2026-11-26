@@ -135,7 +135,7 @@ export async function ajouterUtilisateurClient(
     envoyerCookieToken(res, token);
 
     res.status(201).json({
-      _id: resultat.insertedId, // retour du _id insere dans la collection
+      //_id: resultat.insertedId, // retour du _id insere dans la collection
       ...utilisateurPublic,
     });
   } catch (error) {
@@ -325,33 +325,15 @@ export async function updateUtilisateurParId(
   res: Response,
 ): Promise<void> {
   try {
-    // P3 : chaque client doit pouvoir modifier uniquement son propre compte (Amir).
-    const utilisateurId = req.user?._id;
+    const id = req.user?._id;
 
-    if (!utilisateurId) {
+    // verification que l'utilisateur soit connecte
+    if (!id) {
       res.status(401).json({
-        message: "Vous devez être connecté pour modifier votre compte.",
+        message: "utilisateur non authentifié",
       });
       return;
     }
-
-    const id = req.params.id;
-
-    if (typeof id !== "string" || !ObjectId.isValid(id)) {
-      res.status(400).json({
-        message: "Identifiant non valide",
-      });
-      return;
-    }
-
-    // Compare le compte demandé à celui identifié par le cookie de connexion.
-    if (!utilisateurId.equals(new ObjectId(id))) {
-      res.status(403).json({
-        message: "Vous pouvez modifier uniquement votre propre compte.",
-      });
-      return;
-    }
-    ///////////////////////////////////////////////////////////////////////////////
 
     const { nom, prenom, courriel, motDePasse, adresse } = req.body as Record<
       string,
@@ -435,7 +417,7 @@ export async function updateUtilisateurParId(
     if (updateFields.courriel) {
       const existant = await collectionUtilisateur.findOne({
         courriel: updateFields.courriel,
-        _id: { $ne: new ObjectId(utilisateur.toString()) },
+        _id: { $ne: id },
       });
 
       if (existant) {
@@ -448,7 +430,7 @@ export async function updateUtilisateurParId(
 
     // mise a jour de l'utilisateur
     const resultat = await collectionUtilisateur.updateOne(
-      { _id: new ObjectId(utilisateur.toString()) },
+      { _id: id },
       { $set: updateFields },
     );
 
